@@ -332,6 +332,7 @@ std::istream& operator>>(std::istream& is, tree& t)
    std::vector<node_info> nv(nn);
    for(size_t i=0;i!=nn;i++) {
       is >> nv[i].id >> nv[i].v >> nv[i].c >> nv[i].theta;
+      // cout << "values read in " << nv[i].id << " " << nv[i].v << " " << nv[i].c << " " << nv[i].theta << endl;
       if(!is) {
          //cout << ">> error: unable to read node info, on node  " << i+1 << endl;
          return is;
@@ -385,7 +386,30 @@ void tree::deathp(tree_p nb, double theta)
    nb->c=0;
    nb->theta=theta;
 }
+void tree::copy_only_root(tree_p o)
+//assume n has no children (so we don't have to kill them)
+//NOT LIKE cp() function
+//this function pointer new root to the OLD structure
+{
+    this->v = o->v;
+    this->c = o->c;
+    this->theta = o->theta;
 
+    if (o->l)
+    {
+        // keep the following structure, rather than create a new tree in memory
+        this->l = o->l;
+        this->r = o->r;
+        // also update pointers to parents
+        this->l->p = this;
+        this->r->p = this;
+    }
+    else
+    {
+        this->l = 0;
+        this->r = 0;
+    }
+}
 size_t tree::getbadcut(size_t v){
   tree_p par=this->getp();
   if(par->getv()==v)

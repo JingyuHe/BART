@@ -16,7 +16,7 @@
 ## along with this program; if not, a copy is available at
 ## https://www.R-project.org/Licenses/GPL-2
 
-wbart_ini=function(
+wbart_ini=function(treedraws,
 x.train, y.train, x.test=matrix(0.0,0,0),
 sparse=FALSE, theta=0, omega=1,
 a=0.5, b=1, augment=FALSE, rho=NULL,
@@ -145,7 +145,8 @@ res = .Call("cwbart_ini",
             nkeeptestmean,
             nkeeptreedraws,
             printevery,
-            xinfo
+            xinfo,
+            treedraws
 )
     
 res$proc.time <- proc.time()-ptm

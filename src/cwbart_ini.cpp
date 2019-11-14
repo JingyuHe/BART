@@ -25,7 +25,7 @@
 #include "bart.h"
 #include "heterbart.h"
 
-#ifndef NoRcpp
+// #ifndef NoRcpp
 
 #define TRDRAW(a, b) trdraw(a, b)
 #define TEDRAW(a, b) tedraw(a, b)
@@ -62,7 +62,8 @@ RcppExport SEXP cwbart_ini(
    SEXP _inkeeptreedraws,
    SEXP _inprintevery,
 //   SEXP _treesaslists,
-   SEXP _Xinfo
+   SEXP _Xinfo,
+   SEXP _treedraws
 )
 {
 
@@ -130,6 +131,35 @@ RcppExport SEXP cwbart_ini(
    // initiailize bm object, which contains trees
    heterbart bm(m);
 
+   // load trees
+   Rcpp::CharacterVector itrees(Rcpp::wrap(_treedraws));
+   std::string itv(itrees[0]);
+   std::stringstream ttss(itv);
+   size_t mm, pp;
+   ttss >> mm >> pp;
+
+
+   std::vector< tree > tmat(mm);
+   // for(size_t i=0;i<ndd;i++) 
+   // {  
+   //    tmat[i].resize(mm);
+   // }
+   // for(size_t i=0;i<ndd;i++) {
+      for(size_t j=0;j<mm;j++) {
+         ttss >> tmat[j];
+      }
+   // }}
+
+   cout << "tmat size after write " << tmat.size() << endl;
+
+   cout << "first tree " << tmat[0].getc() << " " << tmat[0].getv() << " " << tmat[0].gettheta() << endl;
+
+   cout << "first tree size " << tmat[0].treesize() << endl;
+   cout << "second tree size" << tmat[1].treesize() << endl;
+
+// cout << "trees read in " << endl;
+// cout << tmat[0][0].treesize() << endl;
+
    if(Xinfo.size()>0) {
      xinfo _xi;
      _xi.resize(p);
@@ -140,68 +170,68 @@ RcppExport SEXP cwbart_ini(
      }
      bm.setxinfo(_xi);
    }
-#else
+// #else
 
-#define TRDRAW(a, b) trdraw[a][b]
-#define TEDRAW(a, b) tedraw[a][b]
+// #define TRDRAW(a, b) trdraw[a][b]
+// #define TEDRAW(a, b) tedraw[a][b]
 
-void cwbart_ini(
-   size_t n,            //number of observations in training data
-   size_t p,		//dimension of x
-   size_t np,		//number of observations in test data
-   double* ix,		//x, train,  pxn (transposed so rows are contiguous in memory)
-   double* iy,		//y, train,  nx1
-   double* ixp,		//x, test, pxnp (transposed so rows are contiguous in memory)
-   size_t m,		//number of trees
-   int* numcut,		//number of cut points
-   size_t nd,		//number of kept draws (except for thinnning ..)
-   size_t burn,		//number of burn-in draws skipped
-   double mybeta,
-   double alpha,
-   double tau,
-   double nu,
-   double lambda,
-   double sigma,
-   double* iw,
-   bool dart,
-   double theta,
-   double omega,
-   int *grp,
-   double a,
-   double b,
-   double rho,
-   bool aug,
-   size_t nkeeptrain,
-   size_t nkeeptest,
-   size_t nkeeptestme,
-   size_t nkeeptreedraws,
-   size_t printevery,
-//   int treesaslists,
-   unsigned int n1, // additional parameters needed to call from C++
-   unsigned int n2,
-   double* trmean,
-   double* temean,
-   double* sdraw,
-   double* _trdraw,
-   double* _tedraw
-)
-{
+// void cwbart_ini(
+//    size_t n,            //number of observations in training data
+//    size_t p,		//dimension of x
+//    size_t np,		//number of observations in test data
+//    double* ix,		//x, train,  pxn (transposed so rows are contiguous in memory)
+//    double* iy,		//y, train,  nx1
+//    double* ixp,		//x, test, pxnp (transposed so rows are contiguous in memory)
+//    size_t m,		//number of trees
+//    int* numcut,		//number of cut points
+//    size_t nd,		//number of kept draws (except for thinnning ..)
+//    size_t burn,		//number of burn-in draws skipped
+//    double mybeta,
+//    double alpha,
+//    double tau,
+//    double nu,
+//    double lambda,
+//    double sigma,
+//    double* iw,
+//    bool dart,
+//    double theta,
+//    double omega,
+//    int *grp,
+//    double a,
+//    double b,
+//    double rho,
+//    bool aug,
+//    size_t nkeeptrain,
+//    size_t nkeeptest,
+//    size_t nkeeptestme,
+//    size_t nkeeptreedraws,
+//    size_t printevery,
+// //   int treesaslists,
+//    unsigned int n1, // additional parameters needed to call from C++
+//    unsigned int n2,
+//    double* trmean,
+//    double* temean,
+//    double* sdraw,
+//    double* _trdraw,
+//    double* _tedraw
+// )
+// {
 
-   //return data structures (using C++)
-   std::vector<double*> trdraw(nkeeptrain);
-   std::vector<double*> tedraw(nkeeptest);
+//    //return data structures (using C++)
+//    std::vector<double*> trdraw(nkeeptrain);
+//    std::vector<double*> tedraw(nkeeptest);
 
-   for(size_t i=0; i<nkeeptrain; ++i) trdraw[i]=&_trdraw[i*n];
-   for(size_t i=0; i<nkeeptest; ++i) tedraw[i]=&_tedraw[i*np];
+//    for(size_t i=0; i<nkeeptrain; ++i) trdraw[i]=&_trdraw[i*n];
+//    for(size_t i=0; i<nkeeptest; ++i) tedraw[i]=&_tedraw[i*np];
 
-   std::vector< std::vector<size_t> > varcnt;
-   std::vector< std::vector<double> > varprb;
+//    std::vector< std::vector<size_t> > varcnt;
+//    std::vector< std::vector<double> > varprb;
 
-   //random number generation
-   arn gen(n1, n2); 
+//    //random number generation
+//    arn gen(n1, n2); 
 
-   heterbart bm(m);
-#endif
+//    heterbart bm(m);
+// #endif
 
    for(size_t i=0;i<n;i++) trmean[i]=0.0;
    for(size_t i=0;i<np;i++) temean[i]=0.0;
@@ -289,6 +319,18 @@ void cwbart_ini(
    time_t tp;
    int time1 = time(&tp);
    xinfo& xi = bm.getxinfo();
+
+
+
+
+   // copy the last forest as initialization of BART forest 
+   cout << "tmat size " << tmat.size() << endl;
+   bm.settree(tmat);
+cout << "tree size of read in " << tmat[0].treesize() << endl;
+cout << mm << " " << pp << endl;
+cout << "theta " << bm.gettree(0).gettheta() << endl;
+cout << "v and c " << bm.gettree(0).getv() << " " << bm.gettree(0).getc() << endl;
+
 
    for(size_t i=0;i<(nd+burn);i++) {
       // loop over forests

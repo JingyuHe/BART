@@ -274,6 +274,8 @@ void cwbart(
    double* fhattest=0; //posterior mean for prediction
    if(np) { fhattest = new double[np]; }
    double restemp=0.0,rss=0.0;
+cout << "tree size is " << bm.gettree(0).treesize() << endl; 
+cout << "v and c " << bm.gettree(0).getv() << " " << bm.gettree(0).getc() << endl;
 
 
    //--------------------------------------------------
