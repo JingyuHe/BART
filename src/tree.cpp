@@ -217,10 +217,15 @@ void tree::getnodes(cnpv& v)  const
 //--------------------
 tree::tree_p tree::bn(double *x,xinfo& xi)
 {
-   if(l==0) return this; //no children
+   if(l==0){
+    return this;
+    } //no children
+   //  cout << "compare " << x[v] << " " << xi[v][c] << endl;
    if(x[v] < xi[v][c]) {
+
       return l->bn(x,xi);
    } else {
+
       return r->bn(x,xi);
    }
 }

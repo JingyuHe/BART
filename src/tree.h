@@ -54,7 +54,8 @@ public:
    tree(const tree& n): theta(0.0),v(0),c(0),p(0),l(0),r(0) {cp(this,&n);}
    tree(double itheta): theta(itheta),v(0),c(0),p(0),l(0),r(0) {}
    void tonull(); //like a "clear", null tree has just one node
-   ~tree() {tonull();}
+   // ~tree() {tonull();}
+   ~tree() {;}
    //operators----------
    tree& operator=(const tree&);
    //interface--------------------

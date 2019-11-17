@@ -68,7 +68,7 @@ public:
 
 
    void settree(std::vector< tree >& tree_copy);
-   
+
    void startdart() {this->dartOn=!(this->dartOn);}
    void settau(double tau) {pi.tau=tau;}
    tree& gettree(size_t i ) { return t[i];}
@@ -77,6 +77,7 @@ public:
    std::vector<size_t>& getnv() {return nv;}
    std::vector<double>& getpv() {return pv;}
    double gettheta() {return theta;}
+   double getallfit(size_t i) {return allfit[i];}
    //------------------------------
    //public methods
    void birth(size_t i, size_t nid,size_t v, size_t c, double ml, double mr)
@@ -86,7 +87,9 @@ public:
    void pr();
    void tonull() {for(size_t i=0;i!=t.size();i++) t[i].tonull();}
    void predict(size_t p, size_t n, double *x, double *fp);
-   void draw(double sigma, rn& gen);
+   void draw(double sigma, rn &gen);
+   void init_residual();
+
 //   void draw_s(rn& gen);
    double f(size_t i) {return allfit[i];}
 protected:
