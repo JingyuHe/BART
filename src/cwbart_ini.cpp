@@ -373,14 +373,6 @@ RcppExport SEXP cwbart_ini(
    for (size_t i = 0; i < (nd + burn); i++)
    {
       // loop over forests
-
-      // print tree size of all trees
-      cout << "tree size ";
-      for(size_t tt = 0; tt < m; tt ++ ){
-         cout << bm.gettree(tt).treesize() << " " ;
-      }
-      cout << endl;
-
       if (i % printevery == 0)
          printf("done %zu (out of %lu)\n", i, nd + burn);
       if (i == (burn / 2) && dart)
