@@ -88,7 +88,7 @@ public:
    void tonull() {for(size_t i=0;i!=t.size();i++) t[i].tonull();}
    void predict(size_t p, size_t n, double *x, double *fp);
    void draw(double sigma, rn &gen);
-   void init_residual();
+
 
 //   void draw_s(rn& gen);
    double f(size_t i) {return allfit[i];}

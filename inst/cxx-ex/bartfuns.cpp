@@ -166,6 +166,7 @@ void drmu(tree& t, xinfo& xi, dinfo& di, pinfo& pi, double sigma, rn& gen)
    std::vector<size_t> nv;
    std::vector<double> syv;
    allsuff(t,xi,di,bnv,nv,syv);
+   // cout << syv << endl;
 
    for(tree::npv::size_type i=0;i!=bnv.size();i++) 
       bnv[i]->settheta(drawnodemu(nv[i],syv[i],pi.tau,sigma,gen));

@@ -171,39 +171,6 @@ void bart::predict(size_t p, size_t n, double *x, double *fp)
    delete[] fptemp;
 }
 //--------------------------------------------------
-void bart::init_residual()
-{
-   tree::npv bnv; //all the bottom nodes
-
-   for (size_t j = 0; j < m; j++)
-   {
-      // cout << "m is " << j << " tree size " << t[j].treesize() << endl;
-
-      bnv.clear();
-      t[j].getbots(bnv);
-
-      // for(size_t kk = 0; kk < bnv.size(); kk ++){
-      //    cout << bnv[kk]->getv()<< " " << bnv[kk]->getc();
-      // }
-      // cout << endl;
-
-      // cout << t[j].getc() << " " << t[j].getv() << endl;
-
-      fit(t[j], xi, n, p, x, ftemp);
-
-      // cout << ftemp[0] << endl;
-
-      for (size_t k = 0; k < n; k++)
-      {
-         allfit[k] = allfit[k] - ftemp[k];
-         r[k] = y[k] - allfit[k];
-
-         // cout << "all fit " << k << " " << allfit[k] << " " << r[k] << endl;
-      }
-   }
-   return;
-}
-
 void bart::draw(double sigma, rn &gen)
 {
    for (size_t j = 0; j < m; j++)
@@ -214,11 +181,14 @@ void bart::draw(double sigma, rn &gen)
          allfit[k] = allfit[k] - ftemp[k];
          r[k] = y[k] - allfit[k];
       }
+      cout << "before draw " << allfit[1] << endl;
       bd(t[j], xi, di, pi, sigma, nv, pv, aug, gen);
       drmu(t[j], xi, di, pi, sigma, gen);
       fit(t[j], xi, p, n, x, ftemp);
       for (size_t k = 0; k < n; k++)
          allfit[k] += ftemp[k];
+
+      cout << "after draw " << allfit[1] << endl;
    }
    if (dartOn)
    {
@@ -228,6 +198,7 @@ void bart::draw(double sigma, rn &gen)
          pv[j] = ::exp(lpv[j]);
    }
 }
+
 //--------------------------------------------------
 //public functions
 void bart::pr() //print to screen

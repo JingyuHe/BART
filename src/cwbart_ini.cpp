@@ -149,8 +149,6 @@ RcppExport SEXP cwbart_ini(
    for (size_t j = 0; j < mm; j++)
    {
       ttss >> tmat[j];
-
-      cout << j << " tree size " << tmat[j].treesize() << endl;
    }
    // }}
 
@@ -318,10 +316,6 @@ RcppExport SEXP cwbart_ini(
    bm.setdart(a, b, rho, aug, dart, theta, omega);
    cout << "get all fit " << endl;
 
-   for(size_t ww = 0; ww < 10; ww ++ ){
-      cout << bm.getallfit(ww) << endl;
-   }
-
    //--------------------------------------------------
    //sigma
    //gen.set_df(n+nu);
@@ -342,9 +336,11 @@ RcppExport SEXP cwbart_ini(
    //temporary storage
    //out of sample fit
    double *fhattest = 0; //posterior mean for prediction
+   double *temp_vec = 0;
    if (np)
    {
       fhattest = new double[np];
+      temp_vec = new double[np];
    }
    double restemp = 0.0, rss = 0.0;
 
@@ -361,15 +357,7 @@ RcppExport SEXP cwbart_ini(
    time_t tp;
    int time1 = time(&tp);
    xinfo &xi = bm.getxinfo();
-
-   cout << "cutpoints loaded " << endl;
-   cout << xi[bm.gettree(0).getv()][bm.gettree(0).getc()] << endl;
-   cout << xi[bm.gettree(0).getl()->getv()][bm.gettree(0).getl()->getc()] << endl;
-
-   // initialize residuals and current fit
-   bm.init_residual();
-
-
+   
    for (size_t i = 0; i < (nd + burn); i++)
    {
       // loop over forests
@@ -379,8 +367,9 @@ RcppExport SEXP cwbart_ini(
          bm.startdart();
 
       //draw bart
+      // bm.draw2(svec, gen, np, ixp, temp_vec);
       bm.draw(svec, gen);
-
+      
       //draw sigma
       rss = 0.0;
       for (size_t k = 0; k < n; k++)
@@ -392,11 +381,11 @@ RcppExport SEXP cwbart_ini(
       for (size_t k = 0; k < n; k++)
          svec[k] = iw[k] * sigma;
       sdraw[i] = sigma;
-
       if (i >= burn)
       {
          for (size_t k = 0; k < n; k++)
             trmean[k] += bm.f(k);
+
          if (nkeeptrain && (((i - burn + 1) % skiptr) == 0))
          {
             //index = trcnt*n;;
@@ -405,10 +394,13 @@ RcppExport SEXP cwbart_ini(
                TRDRAW(trcnt, k) = bm.f(k);
             trcnt += 1;
          }
+
          keeptest = nkeeptest && (((i - burn + 1) % skipte) == 0) && np;
          keeptestme = nkeeptestme && (((i - burn + 1) % skipteme) == 0) && np;
-         if (keeptest || keeptestme)
+         if (keeptest || keeptestme){
             bm.predict(p, np, ixp, fhattest);
+         }
+
          if (keeptest)
          {
             //index=tecnt*np;
@@ -423,6 +415,7 @@ RcppExport SEXP cwbart_ini(
                temean[k] += fhattest[k];
             temecnt += 1;
          }
+
          keeptreedraw = nkeeptreedraws && (((i - burn + 1) % skiptreedraws) == 0);
          if (keeptreedraw)
          {
@@ -470,10 +463,6 @@ RcppExport SEXP cwbart_ini(
    printf("check counts\n");
    printf("trcnt,tecnt,temecnt,treedrawscnt: %zu,%zu,%zu,%zu\n", trcnt, tecnt, temecnt, treedrawscnt);
 
-   for (size_t j = 0; j < mm; j++)
-   {
-      cout << "after tree size " << bm.gettree(j).treesize() << endl;
-   }
 
    //--------------------------------------------------
    //PutRNGstate();
@@ -483,7 +472,6 @@ RcppExport SEXP cwbart_ini(
 
    //--------------------------------------------------
    //return
-   cout << temean << endl;
 #ifndef NoRcpp
    Rcpp::List ret;
    ret["sigma"] = sdraw;
@@ -494,7 +482,6 @@ RcppExport SEXP cwbart_ini(
    //ret["varcount"]=varcount;
    ret["varcount"] = varcnt;
    ret["varprob"] = varprb;
-   cout << "ok 1" << endl;
    //for(size_t i=0;i<m;i++) {
    //  bm.gettree(i).pr();
    //}
@@ -506,7 +493,6 @@ RcppExport SEXP cwbart_ini(
       std::copy(xi[i].begin(), xi[i].end(), vtemp.begin());
       xiret[i] = Rcpp::NumericVector(vtemp);
    }
-   cout << "ok 2" << endl;
    Rcpp::List treesL;
    //treesL["nkeeptreedraws"] = Rcpp::wrap<int>(nkeeptreedraws); //in trees
    //treesL["ntree"] = Rcpp::wrap<int>(m); //in trees
@@ -515,7 +501,6 @@ RcppExport SEXP cwbart_ini(
    treesL["trees"] = Rcpp::CharacterVector(treess.str());
    //   if(treesaslists) treesL["lists"]=list_of_lists;
    ret["treedraws"] = treesL;
-   cout << "ok 3" << endl;
    return ret;
 #else
 

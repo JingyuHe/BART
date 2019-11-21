@@ -30,6 +30,7 @@ public:
    heterbart(size_t m):bart(m) {}
    void pr();
    void draw(double *sigma, rn& gen);
+   void draw2(double *sigma, rn &gen, size_t np, double *ixp, double *temp_vec);
 };
 
 #endif
