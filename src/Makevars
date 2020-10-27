@@ -1,7 +1,7 @@
 
 CXX_STD = CXX11
-PKG_CXXFLAGS = 
-PKG_LIBS = 
+PKG_CXXFLAGS = -fopenmp
+PKG_LIBS = -fopenmp
 
 ## C++ especially with header libs like Rcpp generate large libs on Linux
 ## this will slim down the size of the libs considerably and make CRAN happy
