@@ -19,13 +19,21 @@
 
 #include "bd.h"
 
+// core function of birth and death of a new tree
+// This package does not have SWAP and CHANGE proposal
 bool bd(tree& x, xinfo& xi, dinfo& di, pinfo& pi, double sigma, 
 	std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen)
 {
+   // here x is the tree to update
+   // xi is covariate data
+   // pi prior info
+
    tree::npv goodbots;  //nodes we could birth at (split on)
+
+   // this function list all bottom nodes candidates for split, return PBx prob of each node 
    double PBx = getpb(x,xi,pi,goodbots); //prob of a birth at x
 
-   if(gen.uniform() < PBx) { //do birth or death
+   if(gen.uniform() < PBx) { 
 
       //--------------------------------------------------
       //draw proposal
@@ -37,18 +45,25 @@ bool bd(tree& x, xinfo& xi, dinfo& di, pinfo& pi, double sigma,
       //--------------------------------------------------
       //compute sufficient statistics
       size_t nr,nl; //counts in proposed bots
-      double syl, syr; //sum of y in proposed bots
+      double syl, syr; //sum of y in proposed bots, sufficient statistics being used later
       getsuff(x,nx,v,c,xi,di,nl,syl,nr,syr);
 
       //--------------------------------------------------
       //compute alpha
       double alpha=0.0, lalpha=0.0;
       double lhl, lhr, lht;
+
+      // here alpha is an indicator, if alpha = 0, means that the following loop is not executed
+      // this proposal generates at least one too small leaf, and will not be accepted
       if((nl>=5) && (nr>=5)) { //cludge?
+
+         // calculate likelihood !!!
+         // split versus no split
          lhl = lh(nl,syl,sigma,pi.tau);
          lhr = lh(nr,syr,sigma,pi.tau);
          lht = lh(nl+nr,syl+syr,sigma,pi.tau);
-   
+
+         // the Metropolis Hastings ratio
          alpha=1.0;
          lalpha = log(pr) + (lhl+lhr-lht) + log(sigma);
          lalpha = std::min(0.0,lalpha);
@@ -58,10 +73,13 @@ bool bd(tree& x, xinfo& xi, dinfo& di, pinfo& pi, double sigma,
       //try metrop
       double mul,mur; //means for new bottom nodes, left and right
       double uu = gen.uniform();
+      // if the proposal is accepted
       bool dostep = (alpha > 0) && (log(uu) < lalpha);
       if(dostep) {
          mul = drawnodemu(nl,syl,pi.tau,sigma,gen);
          mur = drawnodemu(nr,syr,pi.tau,sigma,gen);
+
+         // attach the new nodes to the child, with the decision rules and leaf parameters
          x.birthp(nx,v,c,mul,mur);
 	 nv[v]++;
          return true;
@@ -73,6 +91,7 @@ bool bd(tree& x, xinfo& xi, dinfo& di, pinfo& pi, double sigma,
       //draw proposal
       double pr;  //part of metropolis ratio from proposal and prior
       tree::tree_p nx; //nog node to death at
+      // death proposal
       dprop(x,xi,pi,goodbots,PBx,nx,pr,gen);
 
       //--------------------------------------------------

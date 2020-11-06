@@ -78,6 +78,7 @@ void getsuff(tree& x, tree::tree_p nx, size_t v, size_t c, xinfo& xi, dinfo& di,
    nr=0; syr=0.0;
 
    for(size_t i=0;i<di.n;i++) {
+      // loop over all data
       xx = di.x + i*di.p;
       if(nx==x.bn(xx,xi)) { //does the bottom node = xx's bottom node
          if(xx[v] < xi[v][c]) {
@@ -305,7 +306,7 @@ void bprop(tree& x, xinfo& xi, pinfo& pi, tree::npv& goodbots, double& PBx, tree
 // death proposal
 void dprop(tree& x, xinfo& xi, pinfo& pi,tree::npv& goodbots, double& PBx, tree::tree_p& nx, double& pr, rn& gen)
 {
-      //draw nog node, any nog node is a possibility
+      //draw no grandchild node, any nog node is a possibility
       tree::npv nognds; //nog nodes
       x.getnogs(nognds);
       size_t ni = floor(gen.uniform()*nognds.size());

@@ -68,26 +68,47 @@ RcppExport SEXP cwbart(
 
    //--------------------------------------------------
    //process args
+
+   // number of observations in training
    size_t n = Rcpp::as<int>(_in);
+   // number of X variables
    size_t p = Rcpp::as<int>(_ip);
+   // number of observations in testing
    size_t np = Rcpp::as<int>(_inp);
+
+   // vector of x 
    Rcpp::NumericVector  xv(_ix);
    double *ix = &xv[0];
+   // vector of y
    Rcpp::NumericVector  yv(_iy); 
    double *iy = &yv[0];
+   // vector of x test
    Rcpp::NumericVector  xpv(_ixp);
    double *ixp = &xpv[0];
+   // number of trees
    size_t m = Rcpp::as<int>(_im);
+   // vector of cutpoints
    Rcpp::IntegerVector _nc(_inc);
    int *numcut = &_nc[0];
+
+
    //size_t nc = Rcpp::as<int>(_inc);
+
+   // number of kept draws
    size_t nd = Rcpp::as<int>(_ind);
+   // burnin number
    size_t burn = Rcpp::as<int>(_iburn);
+   // beta
    double mybeta = Rcpp::as<double>(_ipower);
+   // alpha
    double alpha = Rcpp::as<double>(_ibase);
+   // tau
    double tau = Rcpp::as<double>(_itau);
+   // nu
    double nu = Rcpp::as<double>(_inu);
+   // lambda for sigma prior
    double lambda = Rcpp::as<double>(_ilambda);
+   // initial value of sigma
    double sigma=Rcpp::as<double>(_isigest);
    Rcpp::NumericVector  wv(_iw); 
    double *iw = &wv[0];

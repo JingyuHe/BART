@@ -127,6 +127,7 @@ void bart::setdata(size_t p, size_t n, double *x, double *y, int *nc)
 
    if (allfit)
    {
+      // if exist, reset to null
       delete[] allfit;
       cout << "delete all fit" << endl;
    }
@@ -141,6 +142,7 @@ void bart::setdata(size_t p, size_t n, double *x, double *y, int *nc)
       delete[] ftemp;
    ftemp = new double[n];
 
+   // DART info
    di.n = n;
    di.p = p;
    di.x = &x[0];
@@ -178,12 +180,20 @@ void bart::draw(double sigma, rn &gen)
       fit(t[j], xi, p, n, x, ftemp);
       for (size_t k = 0; k < n; k++)
       {
+         // calculate partial fit
          allfit[k] = allfit[k] - ftemp[k];
+         // and partial residual
          r[k] = y[k] - allfit[k];
       }
       cout << "before draw " << allfit[1] << endl;
+
+      // update tree, birth or death
       bd(t[j], xi, di, pi, sigma, nv, pv, aug, gen);
+      
+      // update mu
       drmu(t[j], xi, di, pi, sigma, gen);
+      
+      // update total fit
       fit(t[j], xi, p, n, x, ftemp);
       for (size_t k = 0; k < n; k++)
          allfit[k] += ftemp[k];

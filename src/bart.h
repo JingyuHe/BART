@@ -32,6 +32,7 @@ class bart {
 public:
    //------------------------------
    //friends
+   // birth and death function
    friend bool bd(tree& x, xinfo& xi, dinfo& di, pinfo& pi, double sigma,
 		  std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen);
    //------------------------------
@@ -66,9 +67,9 @@ public:
      }
 }
 
-
+   // initialize bart object from a vector of trees 
    void settree(std::vector< tree >& tree_copy);
-
+   // whether sample variables via Dirichlet prior or not, the DART model
    void startdart() {this->dartOn=!(this->dartOn);}
    void settau(double tau) {pi.tau=tau;}
    tree& gettree(size_t i ) { return t[i];}
@@ -101,8 +102,8 @@ protected:
    double *x,*y;  //x is column stack, pxn
    xinfo xi; //cutpoint info
    //working
-   double *allfit; //if the data is set, should be f(x)
-   double *r;
+   double *allfit; //if the data is set, should be f(x), or total fit
+   double *r; // full residuals
    double *ftemp;
    dinfo di;
    bool dart,dartOn,aug,const_theta;
