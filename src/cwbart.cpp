@@ -68,7 +68,6 @@ RcppExport SEXP cwbart(
 
    //--------------------------------------------------
    //process args
-
    // number of observations in training
    size_t n = Rcpp::as<int>(_in);
    // number of X variables

@@ -187,10 +187,10 @@ void bart::draw(double sigma, rn &gen)
       }
       cout << "before draw " << allfit[1] << endl;
 
-      // update tree, birth or death
+      // update tree, birth or death, depends on model, replace the likelihood function
       bd(t[j], xi, di, pi, sigma, nv, pv, aug, gen);
       
-      // update mu
+      // update mu, this function depands on model
       drmu(t[j], xi, di, pi, sigma, gen);
       
       // update total fit

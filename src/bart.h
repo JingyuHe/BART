@@ -100,12 +100,12 @@ protected:
    //data
    size_t p,n; //x has dim p, n obserations
    double *x,*y;  //x is column stack, pxn
-   xinfo xi; //cutpoint info
+   xinfo xi;         //cutpoint info
    //working
-   double *allfit; //if the data is set, should be f(x), or total fit
-   double *r; // full residuals
-   double *ftemp;
-   dinfo di;
+   double *allfit;   // if the data is set, should be f(x), or total fit
+   double *r;        // full residuals
+   double *ftemp;    // temporary container, used in the fit function
+   dinfo di;         // data info, p, n, x, y
    bool dart,dartOn,aug,const_theta;
    double a,b,rho,theta,omega;
    std::vector<size_t> nv;
