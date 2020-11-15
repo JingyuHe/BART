@@ -23,6 +23,7 @@
 #include <map>
 #include <cmath>
 #include <cstddef>
+#include <vector>
 #include "common.h"
 //--------------------------------------------------
 //xinfo xi, then xi[v][c] is the c^{th} cutpoint for variable v.
@@ -37,6 +38,7 @@ struct node_info {
    std::size_t v;  //variable
    std::size_t c;  //cut point
    double theta;   //theta
+   std::vector<double> theta_vec;  // vectorized theta, for usage in multinomial classification
 };
 
 //--------------------------------------------------
@@ -50,9 +52,9 @@ public:
    typedef std::vector<tree_p> npv; 
    typedef std::vector<tree_cp> cnpv;
    //contructors,destructors--------------------
-   tree(): theta(0.0),v(0),c(0),p(0),l(0),r(0) {}
-   tree(const tree& n): theta(0.0),v(0),c(0),p(0),l(0),r(0) {cp(this,&n);}
-   tree(double itheta): theta(itheta),v(0),c(0),p(0),l(0),r(0) {}
+   tree(): theta(0.0),v(0),c(0),p(0),l(0),r(0),theta_vec(0) {}
+   tree(const tree& n): theta(0.0),v(0),c(0),p(0),l(0),r(0), theta_vec(0) {cp(this,&n);}
+   tree(double itheta): theta(itheta),v(0),c(0),p(0),l(0),r(0), theta_vec(0) {}
    void tonull(); //like a "clear", null tree has just one node
    // ~tree() {tonull();}
    ~tree() {;}
@@ -61,10 +63,12 @@ public:
    //interface--------------------
    //set
    void settheta(double theta) {this->theta=theta;}
+   void settheta_vec(std::vector<double> theta) {this->theta_vec = theta_vec;}
    void setv(size_t v) {this->v = v;}
    void setc(size_t c) {this->c = c;}
    //get
    double gettheta() const {return theta;}
+   std::vector<double> gettheta_vec() const {return theta_vec;}
    size_t getv() const {return v;}
    size_t getc() const {return c;}
    tree_p getp() {return p;}  
@@ -102,6 +106,7 @@ public:
 #endif
 private:
    double theta; //univariate double parameter
+   std::vector<double> theta_vec; // vectorized leaf parameter, for usage in multinomial case
    //rule: left if x[v] < xinfo[v][c]
    size_t v;
    size_t c;
