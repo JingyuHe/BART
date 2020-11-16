@@ -16,8 +16,8 @@
 ## along with this program; if not, a copy is available at
 ## https://www.R-project.org/Licenses/GPL-2
 
-bart_multinomial=function(
-x.train, y.train, x.test=matrix(0.0,0,0),
+multinomialbart=function(
+x.train, y.train, num_classes, x.test=matrix(0.0,0,0),
 sparse=FALSE, theta=0, omega=1,
 a=0.5, b=1, augment=FALSE, rho=NULL,
 xinfo=matrix(0.0,0,0), usequants=FALSE,
@@ -114,7 +114,7 @@ if(is.na(sigmaf)) {
 #--------------------------------------------------
 ptm <- proc.time()
 #call
-res = .Call("cbart_multinomial",
+res = .Call("cmultinomialbart",
             n,  #number of observations in training data
             p,  #dimension of x
             np, #number of observations in test data
@@ -145,7 +145,8 @@ res = .Call("cbart_multinomial",
             nkeeptestmean,
             nkeeptreedraws,
             printevery,
-            xinfo
+            xinfo,
+            num_classes
 )
     
 res$proc.time <- proc.time()-ptm

@@ -17,16 +17,13 @@
  *  https://www.R-project.org/Licenses/GPL-2
  */
 
-// BART for multinomial classification
-
-
 #include "tree.h"
 #include "treefuns.h"
 #include "info.h"
 #include "bartfuns.h"
 #include "bd.h"
 #include "bart.h"
-#include "multinomialbart.h"
+#include "heterbart.h"
 
 #ifndef NoRcpp
 
@@ -151,7 +148,7 @@ RcppExport SEXP cbart_multinomial(
 
 
    // initiailize bm object, which contains trees
-   multinomialbart bm(m);
+   heterbart bm(m);
 
    if(Xinfo.size()>0) {
      xinfo _xi;
@@ -223,7 +220,7 @@ void cbart_multinomial(
    //random number generation
    arn gen(n1, n2); 
 
-   multinomialbart bm(m);
+   heterbart bm(m);
 #endif
 
    for(size_t i=0;i<n;i++) trmean[i]=0.0;
@@ -265,7 +262,7 @@ void cbart_multinomial(
    printf("*****skiptr,skipte,skipteme,skiptreedraws: %zu,%zu,%zu,%zu\n",skiptr,skipte,skipteme,skiptreedraws);
 
    //--------------------------------------------------
-   //multinomial bm(m);
+   //heterbart bm(m);
    
    // prior parameters
    bm.setprior(alpha,mybeta,tau);
