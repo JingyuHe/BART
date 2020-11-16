@@ -22,7 +22,13 @@
 //--------------------------------------------------
 //constructor
 bart::bart() : m(200), t(m), pi(), p(0), n(0), x(0), y(0), xi(), allfit(0), r(0), ftemp(0), di(), dartOn(false) {}
-bart::bart(size_t im) : m(im), t(m), pi(), p(0), n(0), x(0), y(0), xi(), allfit(0), r(0), ftemp(0), di(), dartOn(false) {}
+bart::bart(size_t im) : m(im), t(m), pi(), p(0), n(0), x(0), y(0), xi(), allfit(0), r(0), ftemp(0), di(), dartOn(false) {}bart::bart(size_t im, size_t dim_theta) : m(im), t(m), pi(), p(0), n(0), x(0), y(0), xi(), allfit(0), r(0), ftemp(0), di(), dartOn(false) {
+   cout << "init bart, dim theta is " << dim_theta << endl;
+   for(size_t i = 0; i < m; i ++ ){
+      t[i].resize_theta_vec(dim_theta);
+      cout << (t[i].gettheta_vec()).size() << endl;
+   }
+}
 bart::bart(const bart &ib) : m(ib.m), t(m), pi(ib.pi), p(0), n(0), x(0), y(0), xi(), allfit(0), r(0), ftemp(0), di(), dartOn(false)
 {
    this->t = ib.t;

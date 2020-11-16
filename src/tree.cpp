@@ -283,6 +283,7 @@ void tree::cp(tree_p n, tree_cp o)
    n->theta = o->theta;
    n->v = o->v;
    n->c = o->c;
+   n->theta_vec = o->theta_vec;
 
    if(o->l) { //if o has children
       n->l = new tree;

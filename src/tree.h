@@ -52,9 +52,10 @@ public:
    typedef std::vector<tree_p> npv; 
    typedef std::vector<tree_cp> cnpv;
    //contructors,destructors--------------------
-   tree(): theta(0.0),v(0),c(0),p(0),l(0),r(0),theta_vec(0) {}
-   tree(const tree& n): theta(0.0),v(0),c(0),p(0),l(0),r(0), theta_vec(0) {cp(this,&n);}
-   tree(double itheta): theta(itheta),v(0),c(0),p(0),l(0),r(0), theta_vec(0) {}
+   tree(): theta(0.0),v(0),c(0),p(0),l(0),r(0),theta_vec(1, 0.0) {}
+   tree(const tree& n): theta(0.0),v(0),c(0),p(0),l(0),r(0), theta_vec(1, 0.0) {cp(this,&n);}
+   tree(double itheta): theta(itheta),v(0),c(0),p(0),l(0),r(0), theta_vec(1, 0.0) {}
+   tree(size_t num_classes): theta(0.0),v(0),c(0),p(0),l(0),r(0),theta_vec(num_classes, 0.0) {}
    void tonull(); //like a "clear", null tree has just one node
    // ~tree() {tonull();}
    ~tree() {;}
@@ -66,6 +67,7 @@ public:
    void settheta_vec(std::vector<double> theta) {this->theta_vec = theta_vec;}
    void setv(size_t v) {this->v = v;}
    void setc(size_t c) {this->c = c;}
+   void resize_theta_vec(size_t dim_theta) {this->theta_vec.resize(dim_theta);}
    //get
    double gettheta() const {return theta;}
    std::vector<double> gettheta_vec() const {return theta_vec;}

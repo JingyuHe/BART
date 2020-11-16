@@ -28,6 +28,7 @@ class multinomialbart : public bart
 public:
    multinomialbart():bart() {}
    multinomialbart(size_t m):bart(m) {}
+   multinomialbart(size_t m, size_t dim_theta):bart(m, dim_theta) {}
    void pr();
    void draw(double *sigma, rn& gen);
    void draw2(double *sigma, rn &gen, size_t np, double *ixp, double *temp_vec);

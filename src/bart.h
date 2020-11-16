@@ -39,6 +39,7 @@ public:
    //constructor/destructor
    bart();
    bart(size_t m);
+   bart(size_t m, size_t dim_theta);
    bart(const bart&);
    ~bart();
    //------------------------------

@@ -150,7 +150,7 @@ RcppExport SEXP cmultinomialbart(
 
 
    // initiailize bm object, which contains trees
-   multinomialbart bm(m);
+   multinomialbart bm(m,2);
 
    if(Xinfo.size()>0) {
      xinfo _xi;
@@ -266,7 +266,6 @@ void cmultinomialbart(
 
    //--------------------------------------------------
    //multinomialbart bm(m);
-   
    // prior parameters
    bm.setprior(alpha,mybeta,tau);
 
