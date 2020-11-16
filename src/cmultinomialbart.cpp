@@ -23,7 +23,7 @@
 #include "bartfuns.h"
 #include "bd.h"
 #include "bart.h"
-#include "heterbart.h"
+#include "multinomialbart.h"
 
 #ifndef NoRcpp
 
@@ -150,7 +150,7 @@ RcppExport SEXP cmultinomialbart(
 
 
    // initiailize bm object, which contains trees
-   heterbart bm(m);
+   multinomialbart bm(m);
 
    if(Xinfo.size()>0) {
      xinfo _xi;
@@ -223,7 +223,7 @@ void cmultinomialbart(
    //random number generation
    arn gen(n1, n2); 
 
-   heterbart bm(m);
+   multinomialbart bm(m);
 #endif
 
    for(size_t i=0;i<n;i++) trmean[i]=0.0;
@@ -265,7 +265,7 @@ void cmultinomialbart(
    printf("*****skiptr,skipte,skipteme,skiptreedraws: %zu,%zu,%zu,%zu\n",skiptr,skipte,skipteme,skiptreedraws);
 
    //--------------------------------------------------
-   //heterbart bm(m);
+   //multinomialbart bm(m);
    
    // prior parameters
    bm.setprior(alpha,mybeta,tau);
