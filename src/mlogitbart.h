@@ -17,16 +17,31 @@
  *  https://www.R-project.org/Licenses/GPL-2
  */
 
-#ifndef GUARD_heterbd_h
-#define GUARD_heterbd_h
+#ifndef GUARD_heterbart_h
+#define GUARD_heterbart_h
+#include "bart.h"
+#include "mlbartfuns.h"
+#include "mlbd.h"
 
-#include "info.h"
-#include "tree.h"
-#include "treefuns.h"
-#include "bartfuns.h"
-#include "mutlbiartfuns.h"
+class mlogitbart : public bart
+{
+public:
+   mlogitbart(size_t ik);
+   mlogitbart(size_t ik, size_t im);
 
-bool multibd(tree& x, xinfo& xi, dinfo& di, pinfo& pi, double *sigma, 
-	     std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen);
+   void setprior(double m, double a0, double alpha, double beta) // by default a0 = 3.5/sqrt(2)
+      {mpi.a0=a0; mpi.c = m / pow(a0, 2) + 0.5; mpi.d=m / pow(a0, 2); mpi.z3 = exp(lgamma(mpi.c) - mpi.c * log(mpi.d));
+       pi.alpha = alpha; pi.mybeta = beta;
+      }
+   void setdata(size_t p, size_t n, double *x, double *y, int *nc);
+   void predict(size_t p, size_t n, double *x, double *fp);
+   void draw(rn& gen);
+
+protected:
+   size_t k; // number of categories
+   double *phi;
+   mlogitdinfo mdi;
+   mlogitpinfo mpi;
+};
 
 #endif
