@@ -33,7 +33,7 @@
 #define TRDRAW(a, b) trdraw(a, b)
 #define TEDRAW(a, b) tedraw(a, b)
 
-RcppExport SEXP mlbart(
+RcppExport SEXP mlogitbart(
    SEXP _type,          //1:mlbart, 2:mlbart (shared trees)
    SEXP _in,            //number of observations in training data
    SEXP _ip,            //dimension of x
@@ -126,7 +126,7 @@ RcppExport SEXP mlbart(
    //random number generation
    arn gen;
 
-   mlogitbart bm(k, m);
+   mlbart bm(k, m);
 
    if(Xinfo.size()>0) {
      xinfo _xi;
@@ -142,7 +142,7 @@ RcppExport SEXP mlbart(
 #define TRDRAW(a, b) trdraw[a][b]
 #define TEDRAW(a, b) tedraw[a][b]
 
-void mlbart(
+void mlogitbart(
    int type,            //1:wbart, 2:pbart, 3:lbart
    size_t n,            //number of observations in training data
    size_t p,		//dimension of x
@@ -198,7 +198,7 @@ void mlbart(
    //random number generation
    arn gen(n1, n2);
 
-   mlogitbart bm(k, m);
+   mlbart bm(k, m);
 #endif
 
    std::stringstream treess;  //string stream to write trees to
@@ -230,8 +230,8 @@ void mlbart(
    printf("*****burn,nd,thin: %zu,%zu,%zu\n",burn,nd,thin);
 // printf("Prior:\nbeta,alpha,tau,nu,lambda,offset: %lf,%lf,%lf,%lf,%lf,%lf\n",
 //                    mybeta,alpha,tau,nu,lambda,Offset);
-   cout << "*****Prior:beta,alpha,tau,nu,lambda,offset: " 
-	<< mybeta << ',' << alpha << ',' << endl;
+   cout << "*****Prior:beta,alpha,a0: " 
+	<< mybeta << ',' << alpha << ',' << a0 << endl;
 // if(type==1) {
 //    // printf("*****sigma: %lf\n",sigma);
 //    printf("*****w (weights): %lf ... %lf\n",iw[0],iw[n-1]);
@@ -253,7 +253,6 @@ void mlbart(
    bm.setprior(m, a0, alpha, mybeta);
    bm.setdata(p,n,ix,z,numcut);
    // bm.setdart(a,b,rho,aug,dart);
-
    // dart iterations
    std::vector<double> ivarprb (p,0.);
    std::vector<size_t> ivarcnt (p,0);

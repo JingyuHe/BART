@@ -40,6 +40,6 @@ void drphi(double *phi, double *allfit, size_t n, size_t k, rn& gen);
 
 double gignorm(double eta, double chi, double psi);
 
-double gigkernal(double x, double eta, double chi, double psi);
+double lgigkernal(double x, double eta, double chi, double psi);
 
 #endif

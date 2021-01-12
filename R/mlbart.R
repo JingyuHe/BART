@@ -39,7 +39,7 @@ mlbart=function(
                printevery=100L, transposed=FALSE,
                hostname=FALSE,
                mc.cores = 1L, nice = 19L, seed = 99L,
-               a0 = 0.35/sqrt(2)
+               a0 = 3.5/sqrt(2)
                )
 {
     if(is.na(ntype))
@@ -48,7 +48,7 @@ mlbart=function(
     n = length(y.train)
     classes = unique(y.train)
     y_std = as.numeric(factor(y_train)) - 1
-    if (length(y_uni)!= num_class) stop("categories in y.train should match num_class")
+    if (length(classes)!= num_class) stop("categories in y.train should match num_class")
 
     if(!transposed) {
         temp = bartModelMatrix(x.train, numcut, usequants=usequants,
@@ -173,7 +173,7 @@ mlbart=function(
 
     ptm <- proc.time()
 
-    res = .Call("mlbart",
+    res = .Call("mlogitbart",
                 ntype, ##as.integer(factor(type, levels=check))-1,
                 n,  #number of observations in training data
                 p,  #dimension of x
