@@ -87,6 +87,7 @@ void mlbart::predict(size_t p, size_t n, double *x, double *fp)
       } 
       for (size_t ik = 0; ik < k; ik ++) fp[i*k + ik] = fp[i*k + ik] / denom;
    }
+   cout << "delete fptemp"<<endl;
 
    delete[] fptemp;
 }

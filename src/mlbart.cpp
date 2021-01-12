@@ -120,8 +120,8 @@ RcppExport SEXP mlogitbart(
    Rcpp::IntegerMatrix varcnt(nkeeptreedraws,p);
    Rcpp::NumericMatrix Xinfo(_Xinfo);
    Rcpp::NumericVector sdraw(nd+burn);
-   Rcpp::NumericMatrix trdraw(nkeeptrain,n);
-   Rcpp::NumericMatrix tedraw(nkeeptest,np);
+   Rcpp::NumericMatrix trdraw(nkeeptrain,n*k);
+   Rcpp::NumericMatrix tedraw(nkeeptest,np*k);
 
    //random number generation
    arn gen;
@@ -282,7 +282,7 @@ void mlogitbart(
       // if(i==(burn/2)&&dart) bm.startdart();
       //draw bart
       bm.draw(gen);
-
+      cout << "finish draw" << endl;
 
    //    //draw sigma
    //    if(type==1) {
@@ -302,41 +302,48 @@ void mlogitbart(
 	//     svec[k]=sqrt(draw_lambda_i(pow(svec[k], 2.), sign[k]*bm.f(k), 1000, 1, gen));
 	//   }
    //    }
-
+   
       if(i>=burn) {
+         cout << "if burn" << endl;
          if(nkeeptrain && (((i-burn+1) % skiptr) ==0)) {
             // for(size_t j=0;j<n*k;j++) TRDRAW(trcnt,j)=Offset+bm.f(j); //bm.f not normalized
             bm.predict(p,n, ix, fhattrain);
             for(size_t j=0;j<n*k;j++) TRDRAW(trcnt,j)=fhattrain[j];
             trcnt+=1;
+            cout << "trcnt += 1" << endl;
          }
          keeptest = nkeeptest && (((i-burn+1) % skipte) ==0) && np;
          if(keeptest) {
 	         bm.predict(p,np,ixp,fhattest);
             for(size_t j=0;j<np*k;j++) TEDRAW(tecnt,j)=fhattest[j];
             tecnt+=1;
+            cout << "tecnt += 1" << endl;
          }
          keeptreedraw = nkeeptreedraws && (((i-burn+1) % skiptreedraws) ==0);
          if(keeptreedraw) {
+            cout << "keeptreedraw"<<endl;
             for(size_t j=0;j<m*k;j++) {
-	      treess << bm.gettree(j);
+	            treess << bm.gettree(j);
 
-	      #ifndef NoRcpp
-	    ivarcnt=bm.getnv();
-	    ivarprb=bm.getpv();
-	    size_t k=(i-burn)/skiptreedraws;
-	    for(size_t j=0;j<p;j++){
-	      varcnt(k,j)=ivarcnt[j];
-	      varprb(k,j)=ivarprb[j];
-	    }
-            #else
-	    varcnt.push_back(bm.getnv());
-	    varprb.push_back(bm.getpv());
-	    #endif
-	    }
+               #ifndef NoRcpp
+               ivarcnt=bm.getnv();
+               ivarprb=bm.getpv();
+               size_t k=(i-burn)/skiptreedraws;
+               for(size_t j=0;j<p;j++){
+                  varcnt(k,j)=ivarcnt[j];
+                  varprb(k,j)=ivarprb[j];
+               }
+               #else
+               varcnt.push_back(bm.getnv());
+               varprb.push_back(bm.getpv());
+               #endif
+	         }
+            cout << "end treedraw"<<endl;     
          }
       }
    }
+   cout << "finish iterations" << endl;
+
    int time2 = time(&tp);
    printf("time: %ds\n",time2-time1);
    printf("trcnt,tecnt: %zu,%zu\n",trcnt,tecnt);
