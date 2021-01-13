@@ -97,7 +97,7 @@ cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
 
 tm2 = proc.time()
 fit.bart <- mlbart(x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
-                   type='separate', power=2, base=0.95, ntree = 100, numcut=100L, ndpost = 1000, keepevery=10)
+                   type='separate', power=2, base=0.95, ntree = 50, numcut=100L, ndpost = 500, keepevery=10)
 tm2 = proc.time()-tm2
 cat(paste("bart runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 phat.bart <- t(apply(fit.bart$yhat.test, c(2, 3), mean))
@@ -112,8 +112,8 @@ logloss.bart <- sum(mapply(function(x,y) -log(x[y]), spr.bart, y_test+1, SIMPLIF
 cat(paste("xbart logloss : ",round(logloss,3)),"\n")
 cat(paste("bart logloss : ", round(logloss.bart,3)),"\n")
 
-cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
-cat(paste("xgboost runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
+cat(paste("xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
+cat(paste("bart runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 
 cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
 cat(paste("bart classification accuracy: ", round(mean(yhat.bart == y_test),3)),"\n")
