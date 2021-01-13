@@ -47,7 +47,7 @@ RcppExport SEXP mlogitbart(
    SEXP _inc,           //number of cut points
    SEXP _ind,           //number of kept draws (except for thinnning ..)
    SEXP _iburn,         //number of burn-in draws skipped
-   SEXP _ithin,         //thinning
+   SEXP _ithin,         //thinning == keepevery
    SEXP _ipower,        // beta
    SEXP _ibase,         // alpha
    // SEXP _Offset,
@@ -112,16 +112,17 @@ RcppExport SEXP mlogitbart(
    // Rcpp::IntegerVector _grp(_igrp);
    // int *grp = &_grp[0];
    double a0 = Rcpp::as<double>(_ia0);
-   size_t nkeeptrain = nd/thin;     //Rcpp::as<int>(_inkeeptrain);
-   size_t nkeeptest = nd/thin;      //Rcpp::as<int>(_inkeeptest);
+   size_t nkeeptrain = nd/thin;  // = ndpost    //Rcpp::as<int>(_inkeeptrain);
+   size_t nkeeptest = nd/thin;   // = ndpost    //Rcpp::as<int>(_inkeeptest);
    size_t nkeeptreedraws = nd/thin; //Rcpp::as<int>(_inkeeptreedraws);
    size_t printevery = Rcpp::as<int>(_inprintevery);
    Rcpp::NumericMatrix varprb(nkeeptreedraws,p);
    Rcpp::IntegerMatrix varcnt(nkeeptreedraws,p);
    Rcpp::NumericMatrix Xinfo(_Xinfo);
    Rcpp::NumericVector sdraw(nd+burn);
-   Rcpp::NumericMatrix trdraw(nkeeptrain,n*k);
-   Rcpp::NumericMatrix tedraw(nkeeptest,np*k);
+   Rcpp::NumericMatrix trdraw(nkeeptrain, n*k);
+   Rcpp::NumericMatrix tedraw(nkeeptest, np*k);
+
 
    //random number generation
    arn gen;
@@ -282,7 +283,6 @@ void mlogitbart(
       // if(i==(burn/2)&&dart) bm.startdart();
       //draw bart
       bm.draw(gen);
-      cout << "finish draw" << endl;
 
    //    //draw sigma
    //    if(type==1) {
@@ -304,24 +304,19 @@ void mlogitbart(
    //    }
    
       if(i>=burn) {
-         cout << "if burn" << endl;
          if(nkeeptrain && (((i-burn+1) % skiptr) ==0)) {
-            // for(size_t j=0;j<n*k;j++) TRDRAW(trcnt,j)=Offset+bm.f(j); //bm.f not normalized
             bm.predict(p,n, ix, fhattrain);
             for(size_t j=0;j<n*k;j++) TRDRAW(trcnt,j)=fhattrain[j];
             trcnt+=1;
-            cout << "trcnt += 1" << endl;
          }
          keeptest = nkeeptest && (((i-burn+1) % skipte) ==0) && np;
          if(keeptest) {
 	         bm.predict(p,np,ixp,fhattest);
             for(size_t j=0;j<np*k;j++) TEDRAW(tecnt,j)=fhattest[j];
             tecnt+=1;
-            cout << "tecnt += 1" << endl;
          }
          keeptreedraw = nkeeptreedraws && (((i-burn+1) % skiptreedraws) ==0);
          if(keeptreedraw) {
-            cout << "keeptreedraw"<<endl;
             for(size_t j=0;j<m*k;j++) {
 	            treess << bm.gettree(j);
 
@@ -338,11 +333,9 @@ void mlogitbart(
                varprb.push_back(bm.getpv());
                #endif
 	         }
-            cout << "end treedraw"<<endl;     
          }
       }
    }
-   cout << "finish iterations" << endl;
 
    int time2 = time(&tp);
    printf("time: %ds\n",time2-time1);
@@ -357,7 +350,7 @@ void mlogitbart(
    //return list
    Rcpp::List ret;
    // if(type==1) ret["sigma"]=sdraw;
-   ret["yhat.train"]=trdraw;
+   ret["yhat.train"]=trdraw; // dim of trdraw = ndpost , n*k; the prob of i obs in class j is trdraw[:, i*k + j]
    ret["yhat.test"]=tedraw;
    ret["varcount"]=varcnt;
    ret["varprob"]=varprb;

@@ -35,7 +35,7 @@ mlbart=function(
             #    offset=NULL, w=rep(1, length(y.train)),
                ntree=c(200L, 50L, 50L)[ntype], numcut=100L,
                ndpost=1000L, nskip=100L,
-               keepevery=c(1L, 10L, 10L)[ntype],
+               keepevery=c(10L, 10L)[ntype],
                printevery=100L, transposed=FALSE,
                hostname=FALSE,
                mc.cores = 1L, nice = 19L, seed = 99L,
@@ -46,9 +46,9 @@ mlbart=function(
         stop("type argument must be set to either 'separate' or 'joint'")
 
     n = length(y.train)
-    classes = unique(y.train)
-    y_std = as.numeric(factor(y_train)) - 1
-    if (length(classes)!= num_class) stop("categories in y.train should match num_class")
+    # classes = unique(y.train)
+    # y_std = as.numeric(factor(y_train)) - 1
+    # if (length(classes)!= num_class) stop("categories in y.train should match num_class")
 
     if(!transposed) {
         temp = bartModelMatrix(x.train, numcut, usequants=usequants,
@@ -180,7 +180,7 @@ mlbart=function(
                 np, #number of observations in test data
                 num_class,
                 x.train,   #pxn training data x
-                y_std,   #pxn training data x
+                y_train,   #pxn training data x
                 x.test,    #p*np test data x
                 ntree,
                 numcut,
@@ -236,9 +236,8 @@ mlbart=function(
     ##res$LPML=sum(log(CPO))
 
     # res$yhat.train dimnames
-    if(np>0) {
-        #res$yhat.test dimnames = unique(y.train)?
-    }
+    res$yhat.train = array(res$yhat.train, dim = c(ndpost, k, np))
+    if(np>0) {res$yhat.test = array(res$yhat.test, dim = c(ndpost, k, np))}
 
     names(res$treedraws$cutpoints) = dimnames(x.train)[[1]]
     dimnames(res$varcount)[[2]] = as.list(dimnames(x.train)[[1]])

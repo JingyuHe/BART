@@ -121,16 +121,13 @@ double drawnodelambda(size_t n, double sy, double c, double d, rn& gen)
     // lambda ~ pi*GIG(-c+r, 2d, 2s) + (1-pi)*Gamma(c+r, d+s)
     // pi = Z(-c+r, 2*d, 2*s) / (Z(-c+r, 2d, 2s) + Z(c+r, 0, 2*(d+s)))
     // r = n, s = sy
-    cout << "get pi"<<endl;
     double z1 = gignorm(-c+n, 2*d, 2*sy);
     double z2 = gignorm(c+n, 0, 2*(d+sy));
     double _pi =  z1 / (z1+z2);
-    if (gen.uniform() < _pi){ // 
-    cout <<"draw from gig(-c+r, 2*d, 2*s)" <<endl;
+    if (gen.uniform() < _pi){ // draw from gig(-c+r, 2*d, 2*s)
         double eta = -c + n; 
         double chi = 2*d;
         double psi = 2*sy;
-    cout << "eta = " << eta << ", chi = " << chi << ", psi = " << psi << endl;
         // draw u1, u2 independetly from U(0, ib), U(0, id)
         // ib = sup sqrt(h(x))
         double bx = psi == 0 ? chi / (2-2*eta) : (sqrt(pow(eta, 2) - 2*eta + chi * psi + 1) + eta - 1) / psi;

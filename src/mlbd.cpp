@@ -26,7 +26,6 @@ bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, double *phi,
    double PBx = getpb(x,xi,mpi,goodbots); //prob of a birth at x
 
    if(gen.uniform() < PBx) { //do birth or death
-      cout << "birth" << endl;
       //--------------------------------------------------
       //draw proposal
       tree::tree_p nx; //bottom node
@@ -39,11 +38,10 @@ bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, double *phi,
       size_t nr,nl; //counts in proposed bots
       double syl, syr; //sum of y in proposed bots
       mlgetsuff(x,nx,v,c,xi,mdi,nl,syl,nr,syr);
-      cout << "suff stats " << "nl=" << nl << ", syl="<<syl << ", nr=" << nr << ", syr="<<syr<<endl;
+      // cout << "suff stats " << "nl=" << nl << ", syl="<<syl << ", nr=" << nr << ", syr="<<syr<<endl;
 
       //--------------------------------------------------
       //compute alpha
-      cout << "get alpha" << endl;
       double alpha=0.0, lalpha=0.0;
       double lhl, lhr, lht;
       if((nl>=5) && (nr>=5)) { //cludge?
@@ -61,19 +59,15 @@ bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, double *phi,
       double uu = gen.uniform();
       bool dostep = (alpha > 0) && (log(uu) < lalpha);
       if(dostep) {
-         cout << "confirm birth, draw lambda" << endl;
          mul = drawnodelambda(nl,syl, mpi.c, mpi.d,gen);
          mur = drawnodelambda(nr,syr, mpi.c, mpi.d,gen);
-         cout << "x. birth " << endl;
          x.birthp(nx,v,c,mul,mur);
 	 nv[v]++;
-         cout << "return bd" << endl;
          return true;
       } else {
          return false;
       }
    } else {
-      cout << "death" << endl;
       //--------------------------------------------------
       //draw proposal
       double pr;  //part of metropolis ratio from proposal and prior
@@ -85,11 +79,10 @@ bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, double *phi,
       size_t nr,nl; //counts at bots of nx
       double syl, syr; //sum at bots of nx
       mlgetsuff(x, nx->getl(), nx->getr(), xi, mdi, nl, syl, nr, syr);
-      cout << "suff stats " << "nl=" << nl << ", syl="<<syl << ", nr=" << nr << ", syr="<<syr<<endl;
+      // cout << "suff stats " << "nl=" << nl << ", syl="<<syl << ", nr=" << nr << ", syr="<<syr<<endl;
 
       //--------------------------------------------------
       //compute alpha
-      cout << "get alpha" << endl;
       double lhl, lhr, lht;
       lhl = mllh(nl,syl, mpi.c, mpi.d, mpi.z3);
       lhr = mllh(nr,syr, mpi.c, mpi.d, mpi.z3);
@@ -102,11 +95,9 @@ bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, double *phi,
       //try metrop
       double mu;
       if(log(gen.uniform()) < lalpha) {
-         cout << "confirm death" << endl;
          mu = drawnodelambda(nl+nr,syl+syr, mpi.c, mpi.d,gen);
 	 nv[nx->getv()]--;
          x.deathp(nx,mu);
-         cout << "return bd" << endl;
          return true;
       } else {
          return false;

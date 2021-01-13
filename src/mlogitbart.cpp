@@ -68,7 +68,6 @@ void mlbart::predict(size_t p, size_t n, double *x, double *fp)
          for (size_t i = 0; i < n; i++) fp[i*k + ik] += log(fptemp[i]); // fp for i-th obs and j-th class is fp[i*k + j].
       }
    }
-   cout << "finish fit" << endl;
    // normalization
    double denom = 0.0;
    double max_log_prob = -INFINITY;
@@ -87,7 +86,6 @@ void mlbart::predict(size_t p, size_t n, double *x, double *fp)
       } 
       for (size_t ik = 0; ik < k; ik ++) fp[i*k + ik] = fp[i*k + ik] / denom;
    }
-   cout << "delete fptemp"<<endl;
 
    delete[] fptemp;
 }
@@ -99,18 +97,14 @@ void mlbart::draw(rn& gen)
    for(size_t j=0; j< (size_t) m/k;j++) { 
       for(size_t ik = 0; ik < k; ik++){ // loop through categories
         mdi.ik = ik;
-        cout << "tree " << j << ", class " << ik << endl;
         fit(t[j*k + ik],xi,p,n,x,&ftemp[ik*n]);
         for(size_t i=0;i<n;i++) {
             allfit[ik*n + i] = allfit[ik*n + i]/ftemp[ik*n + i];
             // r[ik*n + i] = y[ik*n + i]-allfit[ik*n + i];
             if (isnan(allfit[ik*n + i])) {cout << "allfit " << ik << "*" << n << " + " << i << " is nan, ftemp = " << ftemp[ik*n+i] << endl; exit(1);}
         }
-        cout << "mlbd" << endl;
         mlbd(t[j*k + ik],xi,mdi,mpi,phi,nv,pv,aug,gen);
-        cout << "drlamb" << endl;
         drlamb(t[j*k + ik],xi,mdi,mpi,gen);
-        cout << "fit" << endl;
         fit(t[j*k + ik],xi,p,n,x,&ftemp[ik*n]); // update ftemp, ftemp[i, k] is *(k*n + i)
         for(size_t i=0;i<n;i++) 
         {
