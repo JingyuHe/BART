@@ -131,12 +131,12 @@ double drawnodelambda(size_t n, double sy, double c, double d, rn& gen)
         // draw u1, u2 independetly from U(0, ib), U(0, id)
         // ib = sup sqrt(h(x))
         double bx = psi == 0 ? chi / (2-2*eta) : (sqrt(pow(eta, 2) - 2*eta + chi * psi + 1) + eta - 1) / psi;
-        if (bx == 0) bx = chi/(2-2*eta); 
+        if (bx == 0 | bx < 0) bx = chi/(2-2*eta); 
         double ib = sqrt(exp(lgigkernal(bx, eta, chi, psi)));
         // if (isnan(ib)) ib = sqrt(exp(lgigkernal( chi / (2-2*eta), eta, chi, psi))); // bx = 0 when psi is close to 0, leads to ib = nan
         // id = sup x*sqrt(h(x))
         double dx = psi == 0 ? -chi / 2 / (eta + 1) : (sqrt(pow(eta, 2) + 2*eta + chi*psi + 1) + eta + 1) / psi;
-        if (dx == 0) dx = -chi / 2 / (eta + 1);
+        if (dx == 0 | dx < 0) dx = -chi / 2 / (eta + 1); // dx < 0 might caused by rounding error.
         double id = dx * sqrt(exp(lgigkernal(dx, eta, chi, psi)));
         // if (isnan(id)) {dx = -chi / 2 / (eta + 1); id = dx * sqrt(exp(lgigkernal(dx, eta, chi, psi)));}
 

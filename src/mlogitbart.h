@@ -46,4 +46,14 @@ protected:
    mlogitpinfo mpi;
 };
 
+class mlbartShrtr: public mlbart
+{
+   public:
+   // constructor
+   mlbartShrtr(size_t ik): mlbart(ik) {}
+   mlbartShrtr(size_t ik, size_t im): mlbart (ik, im) {}
+
+   void draw(rn& gen);
+};
+
 #endif

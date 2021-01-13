@@ -114,10 +114,39 @@ void mlbart::draw(rn& gen)
         
       }
    }
-//    What is dartOn?
-//    if(dartOn) {
-//      draw_s(nv,lpv,theta,gen);
-//      draw_theta0(const_theta,theta,lpv,a,b,rho,gen);
-//      for(size_t j=0;j<p;j++) pv[j]=::exp(lpv[j]);
-//    }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//
+//  Multinomial Logistic BART Shared Trees (mlbartShrtr)
+//
+//
+//
+//////////////////////////////////////////////////////////////////////////////////////
+
+// -------------------------------------------------
+void mlbartShrtr::draw(rn& gen)
+{
+   drphi(phi, allfit, n, k, gen);
+   for(size_t j=0; j< (size_t) m/k;j++) { 
+      for(size_t ik = 0; ik < k; ik++){ // loop through categories
+        mdi.ik = ik;
+        fit(t[j*k + ik],xi,p,n,x,&ftemp[ik*n]);
+        for(size_t i=0;i<n;i++) {
+            allfit[ik*n + i] = allfit[ik*n + i]/ftemp[ik*n + i];
+            // r[ik*n + i] = y[ik*n + i]-allfit[ik*n + i];
+            if (isnan(allfit[ik*n + i])) {cout << "allfit " << ik << "*" << n << " + " << i << " is nan, ftemp = " << ftemp[ik*n+i] << endl; exit(1);}
+        }
+        mlbd(t[j*k + ik],xi,mdi,mpi,phi,nv,pv,aug,gen);
+        drlamb(t[j*k + ik],xi,mdi,mpi,gen);
+        fit(t[j*k + ik],xi,p,n,x,&ftemp[ik*n]); // update ftemp, ftemp[i, k] is *(k*n + i)
+        for(size_t i=0;i<n;i++) 
+        {
+           allfit[ik*n + i] *= ftemp[ik*n + i];
+           if (isnan(allfit[ik*n + i])) {cout << "allfit " << ik << "*" << n << " + " << i << " is nan, ftemp = " << ftemp[ik*n+i] << endl; exit(1);}
+        }
+        
+      }
+   }
 }
