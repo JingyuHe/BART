@@ -131,21 +131,30 @@ double drawnodelambda(size_t n, double sy, double c, double d, rn& gen)
         // draw u1, u2 independetly from U(0, ib), U(0, id)
         // ib = sup sqrt(h(x))
         double bx = psi == 0 ? chi / (2-2*eta) : (sqrt(pow(eta, 2) - 2*eta + chi * psi + 1) + eta - 1) / psi;
+        if (bx == 0) bx = chi/(2-2*eta); // bx = 0 when psi is close to 0
         double ib = sqrt(exp(lgigkernal(bx, eta, chi, psi)));
         // id = sup x*sqrt(h(x))
         double dx = psi == 0 ? -chi / 2 / (eta + 1) : (sqrt(pow(eta, 2) + 2*eta + chi*psi + 1) + eta + 1) / psi;
+        if (dx == 0) dx = -chi / 2/ (eta + 1);
         double id = dx * sqrt(exp(lgigkernal(dx, eta, chi, psi)));
         size_t num_try = 0;
         while (true)
         {
             double u1 = gen.uniform()*ib;
             double u2 = gen.uniform()*id;
-            if (isinf(u1) | isinf(u2)) {cout << "u1 = " << u1 << ", u2 = " << u2 << endl; exit(1);}
+            if (isinf(u1) | isinf(u2) | isnan(u1) | isnan(u2)) {
+                cout << "u1 = " << u1 << "; u2 = " << u2 << endl;
+                cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
+                cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
+                exit(1);
+                }
             if (2*log(u1) <= lgigkernal(u2/u1, eta, chi, psi)) { return u2 / u1; }
             else {num_try += 1;}
             if (num_try == 1000){
-                cout << "Warning: Sampling lambda exceeds 1000 iterations." << endl;
-                cout << "ib = " << ib << ", id = " << id << endl;
+                // cout << "Warning: Sampling lambda exceeds 1000 iterations." << endl;
+                // cout << "ib = " << ib << ", id = " << id << "; u1 = " << u1 << "; u2 = " << u2 << "; u2/u2 = " << u2/u1 << endl;
+                // cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
+                // cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
                 return u2/u1; 
             }
         }
