@@ -39,28 +39,29 @@ public:
       cout << "prior a0 = " << a0 << ", m = " << m << ", c=" <<  mpi.c << ", d=" << mpi.d << ", z3 = "<< mpi.z3 << endl;
        pi.alpha = alpha; pi.mybeta = beta;
       }
-   void setdata(size_t p, size_t n, double *x, double *y, int *nc);
+   void setdata(size_t p, size_t n, double *x, double *y, int *nc, bool separate);
    void predict(size_t p, size_t n, double *x, double *fp);
    void draw(rn& gen);
 
 protected:
+   bool separate;
    size_t k; // number of categories
    double *phi;
    mlogitdinfo mdi;
    mlogitpinfo mpi;
 };
 
-class mlbartShrTr: public mlbart
-{
-   public:
-   // constructor
-   mlbartShrTr(size_t ik): mlbart(ik) {}
-   mlbartShrTr(size_t ik, size_t im): mlbart (ik, im) {}
+// class mlbartShrTr: public mlbart
+// {
+//    public:
+//    // constructor
+//    mlbartShrTr(size_t ik): mlbart(ik) {}
+//    mlbartShrTr(size_t ik, size_t im): mlbart (ik, im) {}
 
-   friend bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& pi, double *phi, 
-	     std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen);
+//    friend bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& pi, double *phi, 
+// 	     std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen);
 
-   void draw(rn& gen);
-};
+//    void draw(rn& gen);
+// };
 
 #endif

@@ -20,7 +20,7 @@ mlbart=function(
                x.train, y.train, num_class,
                x.test=matrix(0,0,0), type='separate',
                ntype=as.integer(
-                   factor(type, levels=c('separate', 'joint'))),
+                   factor(type, levels=c('separate', 'shared'))),
             #    sparse=FALSE, theta=0, omega=1,
             #    a=0.5, b=1, augment=FALSE, rho=NULL,
                xinfo=matrix(0,0,0), 
@@ -33,7 +33,7 @@ mlbart=function(
             #    lambda=NA, tau.num=c(NA, 3, 6)[ntype],
                ##tau.interval=0.9973,
             #    offset=NULL, w=rep(1, length(y.train)),
-               ntree=c(200L, 50L, 50L)[ntype], numcut=100L,
+               ntree=c(100L, 100L)[ntype], numcut=100L,
                ndpost=1000L, nskip=100L,
                keepevery=c(10L, 10L)[ntype],
                printevery=100L, transposed=FALSE,
@@ -43,7 +43,7 @@ mlbart=function(
                )
 {
     if(is.na(ntype))
-        stop("type argument must be set to either 'separate' or 'joint'")
+        stop("type argument must be set to either 'separate' or 'shared'")
 
     n = length(y.train)
     # classes = unique(y.train)
