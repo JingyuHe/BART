@@ -104,3 +104,94 @@ bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, double *phi,
       }
    }
 }
+
+bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, double *phi,
+	std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen)
+{
+   tree::npv goodbots;  //nodes we could birth at (split on)
+   double PBx = getpb(t[tree_iter*mdi.k],xi,mpi,goodbots); //prob of a birth at x
+
+   if(gen.uniform() < PBx) { //do birth or death
+      //--------------------------------------------------
+      //draw proposal
+      tree::tree_p nx; //bottom node
+      size_t v,c; //variable and cutpoint
+      double pr; //part of metropolis ratio from proposal and prior
+      bprop(t[tree_iter * mdi.k],xi,mpi,goodbots,PBx,nx,v,c,pr,nv,pv,aug,gen);
+
+      double alpha=1.0, lalpha=log(pr);
+      double lhl, lhr, lht;
+      // size_t nr,nl; //counts in proposed bots
+      // double syl, syr; //sum of y in proposed bots
+      std::vector<size_t> nr(mdi.k), nl(mdi.k);
+      std::vector<double> syl(mdi.k), syr(mdi.k);
+      
+      for (size_t ik = 0; ik < mdi.k; ik++){
+         mdi.ik = ik;
+         //compute sufficient statistics
+         mlgetsuff(t[tree_iter * mdi.k + ik],nx,v,c,xi,mdi,nl[ik],syl[ik],nr[ik],syr[ik]);
+         //compute alpha
+         lhl = mllh(nl[ik],syl[ik], mpi.c, mpi.d, mpi.z3);
+         lhr = mllh(nr[ik],syr[ik], mpi.c, mpi.d, mpi.z3);
+         lht = mllh(nl[ik]+nr[ik],syl[ik]+syr[ik], mpi.c, mpi.d, mpi.z3);
+         lalpha += lhl+lhr-lht; 
+      }
+      lalpha = std::min(0.0,lalpha);
+      
+      //--------------------------------------------------
+      //try metrop
+      double mul,mur; //means for new bottom nodes, left and right
+      double uu = gen.uniform();
+      bool dostep = (alpha > 0) && (log(uu) < lalpha);
+      if(dostep) {
+         for (size_t ik = 0; ik < mdi.k; ik++)
+         {
+            mul = drawnodelambda(nl[ik],syl[ik], mpi.c, mpi.d,gen);
+            mur = drawnodelambda(nr[ik],syr[ik], mpi.c, mpi.d,gen);
+            t[tree_iter * mdi.k + ik].birthp(nx,v,c,mul,mur);
+         }
+         nv[v]++;
+         return true;
+      } else {
+         return false;
+      }
+   } else {
+      //--------------------------------------------------
+      //draw proposal
+      double pr;  //part of metropolis ratio from proposal and prior
+      tree::tree_p nx; //nog node to death at
+      dprop(t[tree_iter * mdi.k],xi,mpi,goodbots,PBx,nx,pr,gen);
+
+      //--------------------------------------------------
+      //compute sufficient statistics
+      double lalpha = log(pr);
+      double lhl, lhr, lht;
+      std::vector<size_t> nr(mdi.k), nl(mdi.k);
+      std::vector<double> syl(mdi.k), syr(mdi.k);
+
+      for (size_t ik = 0; ik < mdi.k; ik++)
+      {
+         mdi.ik = ik;
+         mlgetsuff(t[tree_iter * mdi.k + ik], nx->getl(), nx->getr(), xi, mdi, nl[ik], syl[ik], nr[ik], syr[ik]);
+         lhl = mllh(nl[ik],syl[ik], mpi.c, mpi.d, mpi.z3);
+         lhr = mllh(nr[ik],syr[ik], mpi.c, mpi.d, mpi.z3);
+         lht = mllh(nl[ik]+nr[ik],syl[ik]+syr[ik], mpi.c, mpi.d, mpi.z3);
+         lalpha += (lht - lhl - lhr); // - log(sigma);
+      }
+      lalpha = std::min(0.0,lalpha);
+      //--------------------------------------------------
+      //try metrop
+      double mu;
+      if(log(gen.uniform()) < lalpha) {
+         for (size_t ik = 0; ik < mdi.k; ik++)
+         {
+            mu = drawnodelambda(nl[ik]+nr[ik],syl[ik]+syr[ik], mpi.c, mpi.d,gen);
+            t[tree_iter * mdi.k + ik].deathp(nx,mu);
+         }
+	      nv[nx->getv()]--;
+         return true;
+      } else {
+         return false;
+      }
+   }
+}

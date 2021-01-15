@@ -22,8 +22,8 @@
 using namespace std;
 
 // constructor
-mlbart::mlbart(size_t ik):bart(100 * ik), k(ik), mpi(), mdi(), phi(0) {}
-mlbart::mlbart(size_t ik, size_t im):bart(im * ik), k(ik), mpi(), mdi(), phi(0) {} // construct m by k trees, im-th tree for class ik is t[im*k + ik]
+mlbart::mlbart(size_t ik):bart(100 * ik), k(ik),  phi(0), mpi(), mdi() {}
+mlbart::mlbart(size_t ik, size_t im):bart(im * ik), k(ik),  phi(0), mpi(), mdi() {} // construct m by k trees, im-th tree for class ik is t[im*k + ik]
 
 
 void mlbart::setdata(size_t p, size_t n, double *x, double *y, int *nc)
@@ -126,26 +126,25 @@ void mlbart::draw(rn& gen)
 //////////////////////////////////////////////////////////////////////////////////////
 
 // -------------------------------------------------
-void mlbartShrtr::draw(rn& gen)
+void mlbartShrTr::draw(rn& gen)
 {
    drphi(phi, allfit, n, k, gen);
    for(size_t j=0; j< (size_t) m/k;j++) { 
       for(size_t ik = 0; ik < k; ik++){ // loop through categories
         mdi.ik = ik;
         fit(t[j*k + ik],xi,p,n,x,&ftemp[ik*n]);
-        for(size_t i=0;i<n;i++) {
-            allfit[ik*n + i] = allfit[ik*n + i]/ftemp[ik*n + i];
-            // r[ik*n + i] = y[ik*n + i]-allfit[ik*n + i];
+        for(size_t i=0;i<n;i++) allfit[ik*n + i] = allfit[ik*n + i]/ftemp[ik*n + i];
+      }
+      mlbdShrTr(t,j,xi,mdi,mpi,phi,nv,pv,aug,gen);
+      for (size_t ik = 0; ik < k; ik ++) 
+      {
+         drlamb(t[j*k + ik],xi,mdi,mpi,gen);
+         fit(t[j*k + ik],xi,p,n,x,&ftemp[ik*n]); // update ftemp, ftemp[i, k] is *(k*n + i)
+         for(size_t i=0;i<n;i++) 
+         {
+            allfit[ik*n + i] *= ftemp[ik*n + i];
             if (isnan(allfit[ik*n + i])) {cout << "allfit " << ik << "*" << n << " + " << i << " is nan, ftemp = " << ftemp[ik*n+i] << endl; exit(1);}
-        }
-        mlbd(t[j*k + ik],xi,mdi,mpi,phi,nv,pv,aug,gen);
-        drlamb(t[j*k + ik],xi,mdi,mpi,gen);
-        fit(t[j*k + ik],xi,p,n,x,&ftemp[ik*n]); // update ftemp, ftemp[i, k] is *(k*n + i)
-        for(size_t i=0;i<n;i++) 
-        {
-           allfit[ik*n + i] *= ftemp[ik*n + i];
-           if (isnan(allfit[ik*n + i])) {cout << "allfit " << ik << "*" << n << " + " << i << " is nan, ftemp = " << ftemp[ik*n+i] << endl; exit(1);}
-        }
+         }
         
       }
    }
