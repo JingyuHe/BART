@@ -91,8 +91,6 @@ public:
    char ntype(); //node type t:top, b:bot, n:no grandchildren i:interior (t can be b)
    bool isnog();
    size_t getbadcut(size_t v);
-   void cp(tree_p n,  tree_cp o); //copy tree
-
 #ifndef NoRcpp   
   Rcpp::List tree2list(xinfo& xi, double center=0., double scale=1.); // create an efficient list from a single tree
   //tree list2tree(Rcpp::List&, xinfo& xi); // create a tree from a list and an xinfo  
@@ -108,6 +106,7 @@ private:
    tree_p l; //left child
    tree_p r; //right child
    //utiity functions
+   void cp(tree_p n,  tree_cp o); //copy tree
 };
 std::istream& operator>>(std::istream&, tree&);
 std::ostream& operator<<(std::ostream&, const tree&);

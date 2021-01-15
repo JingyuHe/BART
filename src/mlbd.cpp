@@ -17,52 +17,50 @@
  *  https://www.R-project.org/Licenses/GPL-2
  */
 
-#include "multinomialbd.h"
+#include "mlbd.h"
 
-bool multinomialbd(tree& x, xinfo& xi, dinfo& di, pinfo& pi, double *sigma, 
-	     std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen)
+bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, double *phi,
+	std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen)
 {
-   tree::npv goodbots;  //nodes we could birth at (split on), a vector
-   double PBx = getpb(x,xi,pi,goodbots); //prob of a birth at x
+   tree::npv goodbots;  //nodes we could birth at (split on)
+   double PBx = getpb(x,xi,mpi,goodbots); //prob of a birth at x
 
    if(gen.uniform() < PBx) { //do birth or death
-
       //--------------------------------------------------
       //draw proposal
       tree::tree_p nx; //bottom node
       size_t v,c; //variable and cutpoint
       double pr; //part of metropolis ratio from proposal and prior
-      bprop(x,xi,pi,goodbots,PBx,nx,v,c,pr,nv,pv,aug,gen);
+      bprop(x,xi,mpi,goodbots,PBx,nx,v,c,pr,nv,pv,aug,gen);
 
       //--------------------------------------------------
       //compute sufficient statistics
       size_t nr,nl; //counts in proposed bots
-      double bl,br; //sums of weights
-      double Ml, Mr; //weighted sum of y in proposed bots
-      multinomialgetsuff(x,nx,v,c,xi,di,nl,bl,Ml,nr,br,Mr,sigma);
+      double syl, syr; //sum of y in proposed bots
+      mlgetsuff(x,nx,v,c,xi,mdi,nl,syl,nr,syr);
+      // cout << "suff stats " << "nl=" << nl << ", syl="<<syl << ", nr=" << nr << ", syr="<<syr<<endl;
 
       //--------------------------------------------------
       //compute alpha
       double alpha=0.0, lalpha=0.0;
       double lhl, lhr, lht;
       if((nl>=5) && (nr>=5)) { //cludge?
-         lhl = multinomiallh(bl,Ml,pi.tau);
-         lhr = multinomiallh(br,Mr,pi.tau);
-         lht = multinomiallh(bl+br,Ml+Mr,pi.tau);
+         lhl = mllh(nl,syl, mpi.c, mpi.d, mpi.z3);
+         lhr = mllh(nr,syr, mpi.c, mpi.d, mpi.z3);
+         lht = mllh(nl+nr,syl+syr, mpi.c, mpi.d, mpi.z3);
    
          alpha=1.0;
-         lalpha = log(pr) + (lhl+lhr-lht); 
+         lalpha = log(pr) + (lhl+lhr-lht); // + log(sigma);
          lalpha = std::min(0.0,lalpha);
       }
-
       //--------------------------------------------------
       //try metrop
       double mul,mur; //means for new bottom nodes, left and right
       double uu = gen.uniform();
       bool dostep = (alpha > 0) && (log(uu) < lalpha);
       if(dostep) {
-         mul = multinomialdrawnodemu(bl,Ml,pi.tau,gen);
-         mur = multinomialdrawnodemu(br,Mr,pi.tau,gen);
+         mul = drawnodelambda(nl,syl, mpi.c, mpi.d,gen);
+         mur = drawnodelambda(nr,syr, mpi.c, mpi.d,gen);
          x.birthp(nx,v,c,mul,mur);
 	 nv[v]++;
          return true;
@@ -74,30 +72,30 @@ bool multinomialbd(tree& x, xinfo& xi, dinfo& di, pinfo& pi, double *sigma,
       //draw proposal
       double pr;  //part of metropolis ratio from proposal and prior
       tree::tree_p nx; //nog node to death at
-      dprop(x,xi,pi,goodbots,PBx,nx,pr,gen);
+      dprop(x,xi,mpi,goodbots,PBx,nx,pr,gen);
 
       //--------------------------------------------------
       //compute sufficient statistics
-      double br,bl; //sums of weights
-      double Ml, Mr; //weighted sums of y
-      multinomialgetsuff(x, nx->getl(), nx->getr(), xi, di, bl, Ml, br, Mr, sigma);
+      size_t nr,nl; //counts at bots of nx
+      double syl, syr; //sum at bots of nx
+      mlgetsuff(x, nx->getl(), nx->getr(), xi, mdi, nl, syl, nr, syr);
+      // cout << "suff stats " << "nl=" << nl << ", syl="<<syl << ", nr=" << nr << ", syr="<<syr<<endl;
 
       //--------------------------------------------------
       //compute alpha
       double lhl, lhr, lht;
-      lhl = multinomiallh(bl,Ml,pi.tau);
-      lhr = multinomiallh(br,Mr,pi.tau);
-      lht = multinomiallh(bl+br,Ml+Mr,pi.tau);
+      lhl = mllh(nl,syl, mpi.c, mpi.d, mpi.z3);
+      lhr = mllh(nr,syr, mpi.c, mpi.d, mpi.z3);
+      lht = mllh(nl+nr,syl+syr, mpi.c, mpi.d, mpi.z3);
 
-      double lalpha = log(pr) + (lht - lhl - lhr);
+      double lalpha = log(pr) + (lht - lhl - lhr); // - log(sigma);
       lalpha = std::min(0.0,lalpha);
 
       //--------------------------------------------------
       //try metrop
-      //double a,b,s2,yb;
       double mu;
       if(log(gen.uniform()) < lalpha) {
-         mu = multinomialdrawnodemu(bl+br,Ml+Mr,pi.tau,gen);
+         mu = drawnodelambda(nl+nr,syl+syr, mpi.c, mpi.d,gen);
 	 nv[nx->getv()]--;
          x.deathp(nx,mu);
          return true;

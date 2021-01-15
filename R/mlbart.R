@@ -16,33 +16,39 @@
 ## along with this program; if not, a copy is available at
 ## https://www.R-project.org/Licenses/GPL-2
 
-gbart=function(
-               x.train, y.train,
-               x.test=matrix(0,0,0), type='wbart',
+mlbart=function(
+               x.train, y.train, num_class,
+               x.test=matrix(0,0,0), type='separate',
                ntype=as.integer(
-                   factor(type, levels=c('wbart', 'pbart', 'lbart'))),
-               sparse=FALSE, theta=0, omega=1,
-               a=0.5, b=1, augment=FALSE, rho=NULL,
-               xinfo=matrix(0,0,0), usequants=FALSE,
+                   factor(type, levels=c('separate', 'joint'))),
+            #    sparse=FALSE, theta=0, omega=1,
+            #    a=0.5, b=1, augment=FALSE, rho=NULL,
+               xinfo=matrix(0,0,0), 
+               usequants=FALSE,
                rm.const=TRUE,
-               sigest=NA, sigdf=3, sigquant=0.90,
-               k=2, power=2, base=0.95,
+            #    sigest=NA, sigdf=3, sigquant=0.90,
+            #    k=2, 
+               power=2, base=0.95,
                ##sigmaf=NA,
-               lambda=NA, tau.num=c(NA, 3, 6)[ntype],
+            #    lambda=NA, tau.num=c(NA, 3, 6)[ntype],
                ##tau.interval=0.9973,
-               offset=NULL, w=rep(1, length(y.train)),
+            #    offset=NULL, w=rep(1, length(y.train)),
                ntree=c(200L, 50L, 50L)[ntype], numcut=100L,
                ndpost=1000L, nskip=100L,
-               keepevery=c(1L, 10L, 10L)[ntype],
+               keepevery=c(10L, 10L)[ntype],
                printevery=100L, transposed=FALSE,
                hostname=FALSE,
-               mc.cores = 1L, nice = 19L, seed = 99L
+               mc.cores = 1L, nice = 19L, seed = 99L,
+               a0 = 3.5/sqrt(2)
                )
 {
     if(is.na(ntype))
-        stop("type argument must be set to either 'wbart', 'pbart' or 'lbart'")
+        stop("type argument must be set to either 'separate' or 'joint'")
 
     n = length(y.train)
+    # classes = unique(y.train)
+    # y_std = as.numeric(factor(y_train)) - 1
+    # if (length(classes)!= num_class) stop("categories in y.train should match num_class")
 
     if(!transposed) {
         temp = bartModelMatrix(x.train, numcut, usequants=usequants,
@@ -70,7 +76,7 @@ gbart=function(
 
     p = nrow(x.train)
     np = ncol(x.test)
-    if(length(rho)==0) rho=p
+    # if(length(rho)==0) rho=p
     if(length(rm.const)==0) rm.const <- 1:p
     if(length(grp)==0) grp <- 1:p
 
@@ -88,47 +94,47 @@ gbart=function(
     ## if(!(type %in% check))
     ##     stop("type argument must be set to either 'wbart', 'pbart' or 'lbart'")
 
-    if(length(offset)==0) {
-        offset=mean(y.train)
-        if(type=='pbart') offset=qnorm(offset)
-        else if(type=='lbart') offset=qlogis(offset)
-    }
+    # if(length(offset)==0) {
+    #     offset=mean(y.train)
+    #     if(type=='pbart') offset=qnorm(offset)
+    #     else if(type=='lbart') offset=qlogis(offset)
+    # }
 
-    if(type=='wbart') {
-        y.train = y.train-offset
+    # if(type=='wbart') {
+    #     y.train = y.train-offset
 
-        if(!is.na(sigest) && !is.na(lambda) && lambda==0) {
-            ##no op: sigma is fixed and known at given sigest value
-        }
-        else if(is.na(lambda)) {
-            if(is.na(sigest)) {
-                if(p < n)
-                    sigest = summary(lm(y.train~.,
-                                        data.frame(t(x.train),y.train)))$sigma
-                else sigest = sd(y.train)
-            }
-            qchi = qchisq(1-sigquant, sigdf)
-            lambda = (sigest^2)*qchi/sigdf #lambda parameter for sigma prior
-        } else {
-            sigest=sqrt(lambda)
-        }
+    #     if(!is.na(sigest) && !is.na(lambda) && lambda==0) {
+    #         ##no op: sigma is fixed and known at given sigest value
+    #     }
+    #     else if(is.na(lambda)) {
+    #         if(is.na(sigest)) {
+    #             if(p < n)
+    #                 sigest = summary(lm(y.train~.,
+    #                                     data.frame(t(x.train),y.train)))$sigma
+    #             else sigest = sd(y.train)
+    #         }
+    #         qchi = qchisq(1-sigquant, sigdf)
+    #         lambda = (sigest^2)*qchi/sigdf #lambda parameter for sigma prior
+    #     } else {
+    #         sigest=sqrt(lambda)
+    #     }
 
-        if(is.na(tau.num)) {
-            tau=(max(y.train)-min(y.train))/(2*k*sqrt(ntree))
-        } else {
-            tau=tau.num/(k*sqrt(ntree))
-        }
-    } else {
-        lambda=1
-        sigest=1
-        tau=tau.num/(k*sqrt(ntree))
+    #     if(is.na(tau.num)) {
+    #         tau=(max(y.train)-min(y.train))/(2*k*sqrt(ntree))
+    #     } else {
+    #         tau=tau.num/(k*sqrt(ntree))
+    #     }
+    # } else {
+        # lambda=1
+        # sigest=1
+        # tau=tau.num/(k*sqrt(ntree))
         ## tau=1-tau.interval
 
         ## if(type=='pbart')
         ##     tau=qnorm(1-0.5*tau)/(k*sqrt(ntree))
         ## else if(type=='lbart')
         ##     tau=qlogis(1-0.5*tau)/(k*sqrt(ntree))
-    }
+    # }
 
     ## hot deck missing imputation
     ## must be conducted here since it would
@@ -167,13 +173,14 @@ gbart=function(
 
     ptm <- proc.time()
 
-    res = .Call("cgbart",
+    res = .Call("mlogitbart",
                 ntype, ##as.integer(factor(type, levels=check))-1,
                 n,  #number of observations in training data
                 p,  #dimension of x
                 np, #number of observations in test data
+                num_class,
                 x.train,   #pxn training data x
-                y.train,   #pxn training data x
+                y_train,   #pxn training data x
                 x.test,    #p*np test data x
                 ntree,
                 numcut,
@@ -182,20 +189,19 @@ gbart=function(
                 keepevery,
                 power,
                 base,
-                offset,
-                tau,
-                sigdf,
-                lambda,
-                sigest,
-                w,
-                sparse,
-                theta,
-                omega,
-                grp,
-                a,
-                b,
-                rho,
-                augment,
+                # sigdf,
+                # lambda,
+                # sigest,
+                # w,
+                # sparse,
+                # theta,
+                # omega,
+                # grp,
+                # a,
+                # b,
+                # rho,
+                # augment,
+                a0,
                 printevery,
                 xinfo
                 )
@@ -203,45 +209,36 @@ gbart=function(
     res$proc.time <- proc.time()-ptm
     res$hostname <- hostname
 
-    Y=t(matrix(y.train, nrow=n, ncol=ndpost))
+    # Y=t(matrix(y.train, nrow=n, ncol=ndpost))
 
-    if(type=='wbart') {
-        res$yhat.train.mean <- apply(res$yhat.train, 2, mean)
-        SD=matrix(res$sigma[-(1:nskip)], nrow=ndpost, ncol=n)
-        ##CPO=1/apply(1/dnorm(Y, res$yhat.train, SD), 2, mean)
-        log.pdf=dnorm(Y, res$yhat.train, SD, TRUE)
-        res$sigma.mean=mean(SD[ , 1])
-    }
-    else {
-        if(type=='pbart') res$prob.train = pnorm(res$yhat.train)
-        else if(type=='lbart') res$prob.train = plogis(res$yhat.train)
+    # if(type=='wbart') {
+    #     res$yhat.train.mean <- apply(res$yhat.train, 2, mean)
+    #     SD=matrix(res$sigma[-(1:nskip)], nrow=ndpost, ncol=n)
+    #     ##CPO=1/apply(1/dnorm(Y, res$yhat.train, SD), 2, mean)
+    #     log.pdf=dnorm(Y, res$yhat.train, SD, TRUE)
+    #     res$sigma.mean=mean(SD[ , 1])
+    # }
+    # else {
+    #     if(type=='pbart') res$prob.train = pnorm(res$yhat.train)
+    #     else if(type=='lbart') res$prob.train = plogis(res$yhat.train)
 
-        ##CPO=1/apply(1/dbinom(Y, 1, res$prob.train), 2, mean)
-        log.pdf=dbinom(Y, 1, res$prob.train, TRUE)
+    #     ##CPO=1/apply(1/dbinom(Y, 1, res$prob.train), 2, mean)
+    #     log.pdf=dbinom(Y, 1, res$prob.train, TRUE)
 
-        res$prob.train.mean <- apply(res$prob.train, 2, mean)
-    }
+    #     res$prob.train.mean <- apply(res$prob.train, 2, mean)
+    # }
 
-    min.log.pdf=t(matrix(apply(log.pdf, 2, min), nrow=n, ncol=ndpost))
-    log.CPO=log(ndpost)+min.log.pdf[1, ]-
-        log(apply(exp(min.log.pdf-log.pdf), 2, sum))
-    res$LPML=sum(log.CPO)
+    # min.log.pdf=t(matrix(apply(log.pdf, 2, min), nrow=n, ncol=ndpost))
+    # log.CPO=log(ndpost)+min.log.pdf[1, ]-
+    #     log(apply(exp(min.log.pdf-log.pdf), 2, sum))
+    # res$LPML=sum(log.CPO)
     ##res$CPO=exp(log.CPO)
     ##res$LPML=sum(log(CPO))
 
-    if(np>0) {
-        if(type=='wbart')
-            res$yhat.test.mean <- apply(res$yhat.test, 2, mean)
-        else {
-            if(type=='pbart') res$prob.test = pnorm(res$yhat.test)
-            else if(type=='lbart') res$prob.test = plogis(res$yhat.test)
+    # res$yhat.train dimnames
+    res$yhat.train = array(res$yhat.train, dim = c(ndpost, k, np))
+    if(np>0) {res$yhat.test = array(res$yhat.test, dim = c(ndpost, k, np))}
 
-            res$prob.test.mean <- apply(res$prob.test, 2, mean)
-        }
-    }
-
-    res$ndpost = ndpost
-    res$offset = offset
     names(res$treedraws$cutpoints) = dimnames(x.train)[[1]]
     dimnames(res$varcount)[[2]] = as.list(dimnames(x.train)[[1]])
     dimnames(res$varprob)[[2]] = as.list(dimnames(x.train)[[1]])

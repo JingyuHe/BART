@@ -32,14 +32,12 @@ class bart {
 public:
    //------------------------------
    //friends
-   // birth and death function
    friend bool bd(tree& x, xinfo& xi, dinfo& di, pinfo& pi, double sigma,
 		  std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen);
    //------------------------------
    //constructor/destructor
    bart();
    bart(size_t m);
-   bart(size_t m, size_t dim_theta);
    bart(const bart&);
    ~bart();
    //------------------------------
@@ -67,10 +65,6 @@ public:
        this->theta=_theta;
      }
 }
-
-   // initialize bart object from a vector of trees 
-   void settree(std::vector< tree >& tree_copy);
-   // whether sample variables via Dirichlet prior or not, the DART model
    void startdart() {this->dartOn=!(this->dartOn);}
    void settau(double tau) {pi.tau=tau;}
    tree& gettree(size_t i ) { return t[i];}
@@ -79,7 +73,6 @@ public:
    std::vector<size_t>& getnv() {return nv;}
    std::vector<double>& getpv() {return pv;}
    double gettheta() {return theta;}
-   double getallfit(size_t i) {return allfit[i];}
    //------------------------------
    //public methods
    void birth(size_t i, size_t nid,size_t v, size_t c, double ml, double mr)
@@ -89,9 +82,7 @@ public:
    void pr();
    void tonull() {for(size_t i=0;i!=t.size();i++) t[i].tonull();}
    void predict(size_t p, size_t n, double *x, double *fp);
-   void draw(double sigma, rn &gen);
-
-
+   void draw(double sigma, rn& gen);
 //   void draw_s(rn& gen);
    double f(size_t i) {return allfit[i];}
 protected:
@@ -101,12 +92,12 @@ protected:
    //data
    size_t p,n; //x has dim p, n obserations
    double *x,*y;  //x is column stack, pxn
-   xinfo xi;         //cutpoint info
+   xinfo xi; //cutpoint info
    //working
-   double *allfit;   // if the data is set, should be f(x), or total fit
-   double *r;        // full residuals
-   double *ftemp;    // temporary container, used in the fit function
-   dinfo di;         // data info, p, n, x, y
+   double *allfit; //if the data is set, should be f(x)
+   double *r;
+   double *ftemp;
+   dinfo di;
    bool dart,dartOn,aug,const_theta;
    double a,b,rho,theta,omega;
    std::vector<size_t> nv;

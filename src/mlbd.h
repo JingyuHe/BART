@@ -13,25 +13,20 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, a copy is available at
+ *  along with this p  rogram; if not, a copy is available at
  *  https://www.R-project.org/Licenses/GPL-2
  */
 
-#ifndef GUARD_multinomialbart_h
-#define GUARD_multinomialbart_h
-#include "bart.h"
-#include "multinomialbartfuns.h"
-#include "multinomialbd.h"
+#ifndef GUARD_heterbd_h
+#define GUARD_heterbd_h
 
-class multinomialbart : public bart
-{
-public:
-   multinomialbart():bart() {}
-   multinomialbart(size_t m):bart(m) {}
-   multinomialbart(size_t m, size_t dim_theta):bart(m, dim_theta) {}
-   void pr();
-   void draw(double *sigma, rn& gen);
-   void draw2(double *sigma, rn &gen, size_t np, double *ixp, double *temp_vec);
-};
+#include "info.h"
+#include "tree.h"
+#include "treefuns.h"
+#include "bartfuns.h"
+#include "mlbartfuns.h"
+
+bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& pi, double *phi, 
+	     std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen);
 
 #endif

@@ -23,7 +23,6 @@
 #include <map>
 #include <cmath>
 #include <cstddef>
-#include <vector>
 #include "common.h"
 //--------------------------------------------------
 //xinfo xi, then xi[v][c] is the c^{th} cutpoint for variable v.
@@ -38,7 +37,6 @@ struct node_info {
    std::size_t v;  //variable
    std::size_t c;  //cut point
    double theta;   //theta
-   std::vector<double> theta_vec;  // vectorized theta, for usage in multinomial classification
 };
 
 //--------------------------------------------------
@@ -52,25 +50,20 @@ public:
    typedef std::vector<tree_p> npv; 
    typedef std::vector<tree_cp> cnpv;
    //contructors,destructors--------------------
-   tree(): theta(0.0),v(0),c(0),p(0),l(0),r(0),theta_vec(1, 0.0) {}
-   tree(const tree& n): theta(0.0),v(0),c(0),p(0),l(0),r(0), theta_vec(1, 0.0) {cp(this,&n);}
-   tree(double itheta): theta(itheta),v(0),c(0),p(0),l(0),r(0), theta_vec(1, 0.0) {}
-   tree(size_t num_classes): theta(0.0),v(0),c(0),p(0),l(0),r(0),theta_vec(num_classes, 0.0) {}
+   tree(): theta(0.0),v(0),c(0),p(0),l(0),r(0) {}
+   tree(const tree& n): theta(0.0),v(0),c(0),p(0),l(0),r(0) {cp(this,&n);}
+   tree(double itheta): theta(itheta),v(0),c(0),p(0),l(0),r(0) {}
    void tonull(); //like a "clear", null tree has just one node
-   // ~tree() {tonull();}
-   ~tree() {;}
+   ~tree() {tonull();}
    //operators----------
    tree& operator=(const tree&);
    //interface--------------------
    //set
    void settheta(double theta) {this->theta=theta;}
-   void settheta_vec(std::vector<double> theta) {this->theta_vec = theta_vec;}
    void setv(size_t v) {this->v = v;}
    void setc(size_t c) {this->c = c;}
-   void resize_theta_vec(size_t dim_theta) {this->theta_vec.resize(dim_theta);}
    //get
    double gettheta() const {return theta;}
-   std::vector<double> gettheta_vec() const {return theta_vec;}
    size_t getv() const {return v;}
    size_t getc() const {return c;}
    tree_p getp() {return p;}  
@@ -98,9 +91,6 @@ public:
    char ntype(); //node type t:top, b:bot, n:no grandchildren i:interior (t can be b)
    bool isnog();
    size_t getbadcut(size_t v);
-   void cp(tree_p n,  tree_cp o); //copy tree
-   void copy_only_root(tree_p o);
-
 #ifndef NoRcpp   
   Rcpp::List tree2list(xinfo& xi, double center=0., double scale=1.); // create an efficient list from a single tree
   //tree list2tree(Rcpp::List&, xinfo& xi); // create a tree from a list and an xinfo  
@@ -108,7 +98,6 @@ public:
 #endif
 private:
    double theta; //univariate double parameter
-   std::vector<double> theta_vec; // vectorized leaf parameter, for usage in multinomial case
    //rule: left if x[v] < xinfo[v][c]
    size_t v;
    size_t c;
@@ -117,6 +106,7 @@ private:
    tree_p l; //left child
    tree_p r; //right child
    //utiity functions
+   void cp(tree_p n,  tree_cp o); //copy tree
 };
 std::istream& operator>>(std::istream&, tree&);
 std::ostream& operator<<(std::ostream&, const tree&);
