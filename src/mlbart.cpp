@@ -291,13 +291,13 @@ void mlogitbart(
    
       if(i>=burn) {
          if(nkeeptrain && (((i-burn+1) % skiptr) ==0)) {
-            bm.predict(p,n, ix, fhattrain);
+            bm.predict(p,n, ix, fhattrain, true);
             for(size_t j=0;j<n*k;j++) TRDRAW(trcnt,j)=fhattrain[j];
             trcnt+=1;
          }
          keeptest = nkeeptest && (((i-burn+1) % skipte) ==0) && np;
          if(keeptest) {
-	         bm.predict(p,np,ixp,fhattest);
+	         bm.predict(p,np,ixp,fhattest, true);
             for(size_t j=0;j<np*k;j++) TEDRAW(tecnt,j)=fhattest[j];
             tecnt+=1;
          }

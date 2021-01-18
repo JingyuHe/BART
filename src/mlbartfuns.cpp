@@ -24,10 +24,10 @@ void mlgetsuff(tree& x, tree::tree_p nx, size_t v, size_t c, xinfo& xi, mlogitdi
       if(nx==x.bn(xx,xi)) { //does the bottom node = xx's bottom node
          if(xx[v] < xi[v][c]) {
             nl++; // does xx belong to category ik
-            syl += mdi.phi[i] * mdi.f[mdi.ik*mdi.n + i]; // mdi.f = allfit = f_(h)
+            syl += mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]); // mdi.f = allfit = f_(h)
           } else {
             nr++;
-            syr += mdi.phi[i] * mdi.f[mdi.ik*mdi.n + i];
+            syr += mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]);
           }
       }
    }
@@ -52,11 +52,11 @@ void mlgetsuff(tree& x, tree::tree_p l, tree::tree_p r, xinfo& xi, mlogitdinfo& 
 
       if(bn==l) {
         nl++;
-        syl += mdi.phi[i] * mdi.f[mdi.ik*mdi.n + i];
+        syl += mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]);
       }
       if(bn==r) {
         nr++;
-        syr += mdi.phi[i] * mdi.f[mdi.ik*mdi.n + i];
+        syr += mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]);
       }
    }
 }
@@ -90,7 +90,8 @@ void mlallsuff(tree& x, xinfo& xi, mlogitdinfo& mdi, tree::npv& bnv, std::vector
       if (isnan(mdi.f[mdi.ik*mdi.n + i])){cout << "mdi.f_" << i << " is nan" << ", class " << mdi.ik << endl; exit(1);}
 
       ++(nv[ni]);
-      syv[ni] += mdi.phi[i] * mdi.f[mdi.ik*mdi.n + i];
+      syv[ni] += mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]);
+    //   cout << "phi = " << mdi.phi[i] << "; f = " << mdi.f[mdi.ik*mdi.n + i] << endl;
    }
 }
 //--------------------------------------------------
@@ -118,38 +119,104 @@ double mllh(size_t n, double sy, double c, double d, double z3)
 //draw one lambda from post 
 double drawnodelambda(size_t n, double sy, double c, double d, rn& gen)
 {
+    /////////////////////////// generalize inversed Gaussian distribution
+
     // lambda ~ pi*GIG(-c+r, 2d, 2s) + (1-pi)*Gamma(c+r, d+s)
     // pi = Z(-c+r, 2*d, 2*s) / (Z(-c+r, 2d, 2s) + Z(c+r, 0, 2*(d+s)))
     // r = n, s = sy
     double z1 = gignorm(-c+n, 2*d, 2*sy);
     double z2 = gignorm(c+n, 0, 2*(d+sy));
-    double _pi =  z1 / (z1+z2);
+    // double _pi =  z1 / (z1+z2);
+    double _pi = 0; // try gamma(c, d) prior
     if (gen.uniform() < _pi){ // draw from gig(-c+r, 2*d, 2*s)
         double eta = -c + n; 
         double chi = 2*d;
         double psi = 2*sy;
+        size_t num_try = 0;
+        double u, v, x;
 
-        if ((psi == 0)&&(eta < 0)) return 1/gen.gamma(-eta, chi); // if psi == 0, its a inverse gamma distribution invGamma(-eta, chi)
+        if ((psi == 0)&&(eta < 0)&&(psi > 0)) return 1/gen.gamma(-eta, chi/2); // if psi == 0, its a inverse gamma distribution invGamma(-eta, chi/2)
 
-        // else sample GIG using ratio-of-uniforms
-        // draw u1, u2 independetly from U(0, ib), U(0, id)
-        // ib = sup sqrt(h(x))
-        double bx = (sqrt(pow(eta, 2) - 2*eta + chi * psi + 1) + eta - 1) / psi;
-        if (bx == 0 | bx < 0) bx = chi/(2-2*eta); // dx <= 0 might caused by rounding error as psi close to 0.
-        double ib = sqrt(exp(lgigkernal(bx, eta, chi, psi)));
+        if ((chi == 0)&&(eta > 0)&&(psi > 0)) return gen.gamma(eta, psi/2); // if chi == 0, it's Gamma(eta, psi/2)
 
-        double dx = (sqrt(pow(eta, 2) + 2*eta + chi*psi + 1) + eta + 1) / psi;
-        if (dx == 0 | dx < 0) dx = -chi / 2 / (eta + 1); // dx <= 0 might caused by rounding error.
-        double id = dx * sqrt(exp(lgigkernal(dx, eta, chi, psi)));
+        double beta = sqrt(chi*psi);
+        if ((eta < 1)&&(eta >= 0)&&(beta <= sqrt(1-eta)*2/3)) {
+            /////////////// Rejection method for non-T-concave part ///////////////////////
+            // source: https://core.ac.uk/download/pdf/11008021.pdf
+            double k1, k2, k3, A1, A2, A3, A, h;
+            double m = beta / ((1-eta) + sqrt(pow(1-eta, 2) + pow(beta, 2)));
+            double x0 = beta / (1-eta);
+            double xs = x0 > 2/beta ? x0 : 2/beta;
+            k1 = exp( (eta-1)*log(m) - beta * (m + 1/m) / 2 ); // g(m) = x^(eta-1)*exp(-beta * (m+1/m) / 2)
+            A1 = k1 * x0;
+
+            if (x0 < 2/beta) {
+                k2 = exp(-beta);
+                if (eta == 0) { A2 = k2 * log(2 / pow(beta, 2)); }
+                else { A2 = k2 * (pow(2/beta, eta) - pow(x0, eta)) / eta; }
+            }else{  k2 = 0; A2 = 0; }
+            
+            k3 = pow(xs, eta - 1); A3 = 2 * k3 * exp(-xs * beta / 2) / beta;
+            A = A1 + A2 + A3;
+
+            while (num_try < 1000){
+                u = gen.uniform(); v = gen.uniform() * A;
+                if (v <= A1) { x = x0 * v / A1; h = k1; }
+                else if (v <= (A1 + A2)) {
+                    v = v - A1;
+                    if (eta == 0) { x = beta * exp(v * exp(beta)); }
+                    else { x = pow( pow(x0, eta) + v * eta / k2, 1/eta ); h = k2 * pow(x, eta - 1);  }
+                } else {
+                    v = v - A1 - A2;
+                    x = - 2 / beta * log( exp( -xs * beta / 2) - v * beta / 2 / k3 ); 
+                    h = k3 * exp(-x * beta / 2);
+                }
+                if (u * h <= exp( (eta - 1)*log(x) - beta * (x + 1/x) / 2 ) ) { return x;} // uh <= g(x, eta, chi , psi)
+                else { num_try += 1; }
+            }
+            // cout << "Warning: Sampling lambda exceeds 1000 iterations in rejection methhod for non-T-concave part" << endl;
+            // cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
+            // cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
+            // cout << "k1 = " << k1 << "; k2 = " << k2 << "; k3 = " << k3 << endl;
+            // cout << "A1 = " << A1 << "; A2 = " << A2 << "; A3 = " << A3 << "; x = " << x << endl;
+            return x;
+        }
+        
+        if ((eta <= 1)&&(eta >= 0)&&(beta <= 1)&&((beta >= 1/2) | (beta >= sqrt(1-eta)*2/3))){
+            /////////////// Ratio-of-Uniforms without node shift ///////////////////////
+            // source: https://core.ac.uk/download/pdf/11008021.pdf
+            double m = beta / ((1-eta) + sqrt((pow(1-eta, 2) + pow(beta, 2))));
+            double xp = ((1+eta) + sqrt(pow(1+eta, 2) + pow(beta, 2))) / beta;
+            double vp = sqrt( exp( (eta-1)*log(m) - beta * (m + 1/m) / 2 ) ); // sqrt(g(m))
+            double up = xp * sqrt( exp( (eta - 1)*log(xp) - beta * (xp + 1/xp) /2 ));
+
+            while (num_try < 1000){
+                u = gen.uniform() * up; v = gen.uniform() * vp;
+                x = u/v;
+                if (pow(v, 2) <= exp( (eta-1)*log(x) - beta * (x + 1/x) /2 )) { return x;}
+                else { num_try += 1; } 
+            }
+            // cout << "Warning: Sampling lambda exceeds 1000 iterations in ratio-of-uniforms without mode shift" << endl;
+            // cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
+            // cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
+            // cout << "m = " << m << "; xp = " << xp << "; vp = " << vp << "; up = " << up << "; x = " << x << endl;
+            return x;
+        }
+
+        /////////////// Ratio-of-Uniforms method ///////////////////////        
+        double bx, dx, ib, id, u1, u2;
+        bx = sqrt(pow(eta, 2) - 2*eta + chi * psi + 1) + eta - 1 == 0 ? chi/(2-2*eta) : (sqrt(pow(eta, 2) - 2*eta + chi * psi + 1) + eta - 1) / psi;
+        dx = sqrt(pow(eta, 2) + 2*eta + chi * psi + 1) + eta + 1 == 0 ? -chi / (2 * eta + 2) : (sqrt(pow(eta, 2) + 2*eta + chi * psi + 1) + eta + 1) / psi;
+        ib = sqrt(exp(lgigkernal(bx, eta, chi, psi)));
+        id = dx * sqrt(exp(lgigkernal(dx, eta, chi, psi)));
 
         // if bx or dx is less than 0, likely psi is too closed to zero and caused an rounding error.
-        if ((bx <= 0 | dx <= 0) && (eta < 0)) return 1/gen.gamma(-eta, chi);
+        // if ((bx <= 0 | dx <= 0 | id <= 0 | ib <= 0) && (eta < 0)) return 1/gen.gamma(-eta, chi);
          
-        size_t num_try = 0;
-        while (true)
+        while (num_try < 1000)
         {
-            double u1 = gen.uniform()*ib;
-            double u2 = gen.uniform()*id;
+            u1 = gen.uniform()*ib;
+            u2 = gen.uniform()*id;
             if (isinf(u1) | isinf(u2) | isnan(u1) | isnan(u2)) {
                 cout << "u1 = " << u1 << "; u2 = " << u2 << endl;
                 cout << "bx = " << ib << "; ib = " << ib << "; dx = " << dx << "; id = " << id << endl;
@@ -157,16 +224,15 @@ double drawnodelambda(size_t n, double sy, double c, double d, rn& gen)
                 cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
                 exit(1);
                 }
-            if (2*log(u1) <= lgigkernal(u2/u1, eta, chi, psi)) { return u2 / u1; }
+            if (2*log(u1) <= lgigkernal(u2/u1, eta, chi, psi)) {return u2 / u1; }
             else {num_try += 1;}
-            if (num_try == 1000){
-                cout << "Warning: Sampling lambda exceeds 1000 iterations." << endl;
-                cout << "ib = " << ib << ", id = " << id << "; u1 = " << u1 << "; u2 = " << u2 << "; u2/u2 = " << u2/u1 << endl;
-                cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
-                cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
-                return u2/u1; 
-            }
         }
+        // cout << "Warning: Sampling lambda exceeds 1000 iterations." << endl;
+        // cout << "ib = " << ib << "; bx = " << bx << "; id = " << id << "; dx = " << dx << endl;
+        // cout << "u1 = " << u1 << "; u2 = " << u2 << "; u2/u1 = " << u2/u1 << endl;
+        // cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
+        // cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
+        return u2/u1; 
     }
     else { // draw from gig(c+r, 0, 2*(d+s)) or equivalently gamma(c+r, d+s)
         return gen.gamma(c+n, d+sy);
@@ -178,11 +244,16 @@ void drphi(double *phi, double *allfit, size_t n, size_t k, rn& gen)
     for (size_t i = 0; i < n; i++){
         sum_fit = 0.0;
         for (size_t j = 0; j < k; j++){
-            sum_fit += allfit[j*n + i];
+            sum_fit += exp(allfit[j*n + i]);
         }
         phi[i] = gen.gamma(1, sum_fit); 
         if (isnan(phi[i])) {cout << "phi_" << i << " is nan, sum_fit = " << sum_fit << endl; exit(1);}
     }
+    // sum_fit = 0.0;
+    // for (size_t j = 0; j< k; j++) sum_fit += exp(allfit[j * n + 1]);
+    // cout << "sum_fit = " << sum_fit <<", allfit = ";
+    // for (size_t j=0;j<k;j++) cout << exp(allfit[j * n + 1]) << ", ";
+    // cout << " " << endl;
 }
 // return the nomalization term for generazlied inverse gaussian (gig) distribution, see mlnomial BART, Jared Murray
 double gignorm(double eta, double chi, double psi) 

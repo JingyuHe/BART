@@ -44,7 +44,7 @@ bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, double *phi,
       //compute alpha
       double alpha=0.0, lalpha=0.0;
       double lhl, lhr, lht;
-      if((nl>=5) && (nr>=5)) { //cludge?
+      if((nl>=5) | (nr>=5)) { //cludge?
          lhl = mllh(nl,syl, mpi.c, mpi.d, mpi.z3);
          lhr = mllh(nr,syr, mpi.c, mpi.d, mpi.z3);
          lht = mllh(nl+nr,syl+syr, mpi.c, mpi.d, mpi.z3);

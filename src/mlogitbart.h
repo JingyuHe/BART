@@ -40,7 +40,7 @@ public:
        pi.alpha = alpha; pi.mybeta = beta;
       }
    void setdata(size_t p, size_t n, double *x, double *y, int *nc, bool separate);
-   void predict(size_t p, size_t n, double *x, double *fp);
+   void predict(size_t p, size_t n, double *x, double *fp, bool normalize);
    void draw(rn& gen);
 
 protected:
