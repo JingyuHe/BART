@@ -6,8 +6,8 @@ library(BART)
 # 
 # n = 200
 # nt = 50
-n = 10000
-nt = 5000
+n = 1000
+nt = 500
 p = 6
 p_cat = 0
 k = 6
@@ -60,7 +60,7 @@ lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
 
 
 # vary s to make the problem harder s < 1 or easier s > 2
-s = 1
+s = 15
 pr = exp(s*lam)
 pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
 y_train = sapply(1:n,function(j) sample(0:(k-1),1,prob=pr[j,]))
@@ -90,14 +90,15 @@ fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
 
 tm = proc.time()-tm
 cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
-phat = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), mean) 
+phat = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), mean)
 yhat = apply(phat,1,which.max)-1
 cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
 
 
 tm2 = proc.time()
 fit.bart <- mlbart(x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
-                   type='separate', power=2, base=0.95, ntree = 50, numcut=100L, ndpost = 500, keepevery=10)
+                   type='separate', power=2, base=0.95, 
+                   ntree = 20, ndpost = 100, keepevery=5, nskip=20)
 tm2 = proc.time()-tm2
 cat(paste("bart runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 phat.bart <- t(apply(fit.bart$yhat.test, c(2, 3), mean))

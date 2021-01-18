@@ -251,7 +251,7 @@ void drphi(double *phi, double *allfit, size_t n, size_t k, rn& gen)
     }
     // sum_fit = 0.0;
     // for (size_t j = 0; j< k; j++) sum_fit += exp(allfit[j * n + 1]);
-    // cout << "sum_fit = " << sum_fit <<", allfit = ";
+    // cout << "phi = " << phi[1] << "; sum_fit = " << sum_fit <<", allfit = ";
     // for (size_t j=0;j<k;j++) cout << exp(allfit[j * n + 1]) << ", ";
     // cout << " " << endl;
 }
