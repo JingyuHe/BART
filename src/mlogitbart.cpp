@@ -108,8 +108,7 @@ void mlbart::draw(rn& gen)
             // update allfit for class ik
             mdi.ik = ik;
             fit(t[j*k + ik],xi,p,n,x,&ftemp[ik * n]); 
-            for(size_t i=0;i<n;i++) allfit[ik * n + i] = allfit[ik * n + i] - log(ftemp[ik * n + i]);
-
+            for(size_t i=0;i<n;i++) allfit[ik * n + i] += - log(ftemp[ik * n + i]);
             //bd function 
             mlbd(t[j*k + ik],xi,mdi,mpi,phi,nv,pv,aug,gen);
 
@@ -124,7 +123,7 @@ void mlbart::draw(rn& gen)
          for(size_t ik = 0; ik < k; ik++){ // loop through categories
             mdi.ik = ik;
             fit(t[j*k + ik],xi,p,n,x,&ftemp[ik * n]);
-            for(size_t i=0;i<n;i++) allfit[ik * n + i] = allfit[ik * n + i] - log(ftemp[ik * n + i]);
+            for(size_t i=0;i<n;i++) allfit[ik * n + i] += - log(ftemp[ik * n + i]);
          }
 
          // bd function, shared tree version
@@ -138,10 +137,9 @@ void mlbart::draw(rn& gen)
             for(size_t i=0;i<n;i++)  allfit[ik * n + i] += log(ftemp[ik * n + i]);
          }
       }
+      drphi(phi, allfit, n, k, gen);
+      // cout << "allfits = ";
+      // for (size_t ik = 0; ik < k; ik++) cout << allfit[ik*n + 1] << ", ";
+      // cout << endl;
    }
-   drphi(phi, allfit, n, k, gen); // update phi every tree
-   // cout << "phi = " << phi[1] << "; fits = ";
-   // for (size_t j = 0; j < k; j++) cout << exp(allfit[j * n + 1]) << ", ";
-   // cout << " " << endl; 
-   
 }

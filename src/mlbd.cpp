@@ -108,16 +108,17 @@ bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, double *phi,
 bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, double *phi,
 	std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen)
 {
-   tree::npv goodbots;  //nodes we could birth at (split on)
-   double PBx = getpb(t[tree_iter*mdi.k],xi,mpi,goodbots); //prob of a birth at x
+   std::vector<tree::npv> goodbots(mdi.k);  //nodes we could birth at (split on)
+   double PBx = getpbShrTr(t,tree_iter, mdi.k, xi,mpi,goodbots); //prob of a birth at x
 
    if(gen.uniform() < PBx) { //do birth or death
       //--------------------------------------------------
       //draw proposal
-      tree::tree_p nx; //bottom node
+      std::vector<tree::tree_p> nx(mdi.k); //bottom node
       size_t v,c; //variable and cutpoint
       double pr; //part of metropolis ratio from proposal and prior
-      bprop(t[tree_iter * mdi.k],xi,mpi,goodbots,PBx,nx,v,c,pr,nv,pv,aug,gen);
+      size_t ni = bpropShrTr(t[tree_iter * mdi.k],xi,mpi,goodbots[0],PBx,nx[0],v,c,pr,nv,pv,aug,gen);
+      for (size_t j = 0; j < mdi.k; j++) nx[j] = goodbots[j][ni]; // get the birth node for each tree;
 
       double alpha=1.0, lalpha=log(pr);
       double lhl, lhr, lht;
@@ -129,7 +130,7 @@ bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& m
       for (size_t ik = 0; ik < mdi.k; ik++){
          mdi.ik = ik;
          //compute sufficient statistics
-         mlgetsuff(t[tree_iter * mdi.k + ik],nx,v,c,xi,mdi,nl[ik],syl[ik],nr[ik],syr[ik]);
+         mlgetsuff(t[tree_iter * mdi.k + ik],nx[ik],v,c,xi,mdi,nl[ik],syl[ik],nr[ik],syr[ik]);
          //compute alpha
          lhl = mllh(nl[ik],syl[ik], mpi.c, mpi.d, mpi.z3);
          lhr = mllh(nr[ik],syr[ik], mpi.c, mpi.d, mpi.z3);
@@ -148,7 +149,7 @@ bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& m
          {
             mul = drawnodelambda(nl[ik],syl[ik], mpi.c, mpi.d,gen);
             mur = drawnodelambda(nr[ik],syr[ik], mpi.c, mpi.d,gen);
-            t[tree_iter * mdi.k + ik].birthp(nx,v,c,mul,mur);
+            t[tree_iter * mdi.k + ik].birthp(nx[ik],v,c,mul,mur);
          }
          nv[v]++;
          return true;
@@ -158,9 +159,13 @@ bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& m
    } else {
       //--------------------------------------------------
       //draw proposal
+      std::vector<tree::npv> nognds(mdi.k); //nog nodes
+      for (size_t j=0;j<mdi.k;j++) t[tree_iter * mdi.k + j].getnogs(nognds[j]);
+      
       double pr;  //part of metropolis ratio from proposal and prior
-      tree::tree_p nx; //nog node to death at
-      dprop(t[tree_iter * mdi.k],xi,mpi,goodbots,PBx,nx,pr,gen);
+      std::vector<tree::tree_p> nx(mdi.k); //nog node to death at
+      size_t ni = dpropShrTr(t[tree_iter * mdi.k],xi,mpi,goodbots[0],PBx,nx[0],pr,gen);
+      for (size_t j = 0; j < mdi.k; j++) nx[j] = goodbots[j][ni]; // get the death node for each tree;
 
       //--------------------------------------------------
       //compute sufficient statistics
@@ -172,7 +177,7 @@ bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& m
       for (size_t ik = 0; ik < mdi.k; ik++)
       {
          mdi.ik = ik;
-         mlgetsuff(t[tree_iter * mdi.k + ik], nx->getl(), nx->getr(), xi, mdi, nl[ik], syl[ik], nr[ik], syr[ik]);
+         mlgetsuff(t[tree_iter * mdi.k + ik], nx[ik]->getl(), nx[ik]->getr(), xi, mdi, nl[ik], syl[ik], nr[ik], syr[ik]);
          lhl = mllh(nl[ik],syl[ik], mpi.c, mpi.d, mpi.z3);
          lhr = mllh(nr[ik],syr[ik], mpi.c, mpi.d, mpi.z3);
          lht = mllh(nl[ik]+nr[ik],syl[ik]+syr[ik], mpi.c, mpi.d, mpi.z3);
@@ -186,9 +191,9 @@ bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& m
          for (size_t ik = 0; ik < mdi.k; ik++)
          {
             mu = drawnodelambda(nl[ik]+nr[ik],syl[ik]+syr[ik], mpi.c, mpi.d,gen);
-            t[tree_iter * mdi.k + ik].deathp(nx,mu);
+            t[tree_iter * mdi.k + ik].deathp(nx[ik],mu);
          }
-	      nv[nx->getv()]--;
+	      nv[nx[0]->getv()]--;
          return true;
       } else {
          return false;
