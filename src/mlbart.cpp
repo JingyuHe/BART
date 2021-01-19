@@ -71,6 +71,7 @@ RcppExport SEXP mlogitbart(
 {
    //process args
    int type = Rcpp::as<int>(_type);
+   bool separate = type == 1 ? true : false;
    size_t n = Rcpp::as<int>(_in);
    size_t p = Rcpp::as<int>(_ip);
    size_t np = Rcpp::as<int>(_inp);
@@ -91,26 +92,6 @@ RcppExport SEXP mlogitbart(
    size_t thin = Rcpp::as<int>(_ithin);
    double mybeta = Rcpp::as<double>(_ipower);
    double alpha = Rcpp::as<double>(_ibase);
-   // double Offset = Rcpp::as<double>(_Offset);
-   // double tau = Rcpp::as<double>(_itau);
-   // double nu = Rcpp::as<double>(_inu);
-   // double lambda = Rcpp::as<double>(_ilambda);
-   // double sigma=Rcpp::as<double>(_isigest);
-   // Rcpp::NumericVector  wv(_iw); 
-   // double *iw = &wv[0];
-   // bool dart;
-   // if(Rcpp::as<int>(_idart)==1) dart=true;
-   // else dart=false;
-   // double a = Rcpp::as<double>(_ia);
-   // double b = Rcpp::as<double>(_ib);
-   // double rho = Rcpp::as<double>(_irho);
-   // bool aug;
-   // if(Rcpp::as<int>(_iaug)==1) aug=true;
-   // else aug=false;
-   // double theta = Rcpp::as<double>(_itheta);
-   // double omega = Rcpp::as<double>(_iomega);
-   // Rcpp::IntegerVector _grp(_igrp);
-   // int *grp = &_grp[0];
    double a0 = Rcpp::as<double>(_ia0);
    size_t nkeeptrain = nd/thin;  // = ndpost    //Rcpp::as<int>(_inkeeptrain);
    size_t nkeeptest = nd/thin;   // = ndpost    //Rcpp::as<int>(_inkeeptest);
@@ -252,7 +233,7 @@ void mlogitbart(
    // --------------------------------------------------
    //set up BART model
    bm.setprior(m, a0, alpha, mybeta);
-   bm.setdata(p,n,ix,z,numcut);
+   bm.setdata(p,n,ix,z,numcut, separate);
    // bm.setdart(a,b,rho,aug,dart);
    // dart iterations
    std::vector<double> ivarprb (p,0.);
@@ -305,13 +286,13 @@ void mlogitbart(
    
       if(i>=burn) {
          if(nkeeptrain && (((i-burn+1) % skiptr) ==0)) {
-            bm.predict(p,n, ix, fhattrain);
+            bm.predict(p,n, ix, fhattrain, true);
             for(size_t j=0;j<n*k;j++) TRDRAW(trcnt,j)=fhattrain[j];
             trcnt+=1;
          }
          keeptest = nkeeptest && (((i-burn+1) % skipte) ==0) && np;
          if(keeptest) {
-	         bm.predict(p,np,ixp,fhattest);
+	         bm.predict(p,np,ixp,fhattest, true);
             for(size_t j=0;j<np*k;j++) TEDRAW(tecnt,j)=fhattest[j];
             tecnt+=1;
          }
