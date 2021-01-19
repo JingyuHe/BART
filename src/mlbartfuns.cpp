@@ -123,8 +123,7 @@ double drawnodelambda(size_t n, double sy, double c, double d, rn& gen)
     // r = n, s = sy
     double z1 = gignorm(-c+n, 2*d, 2*sy);
     double z2 = gignorm(c+n, 0, 2*(d+sy));
-    // double _pi =  z1 / (z1+z2);
-    double _pi = 0; // try gamma(c, d) prior
+    double _pi =  z1 / (z1+z2);
     if (gen.uniform() < _pi){ // draw from gig(-c+r, 2*d, 2*s)
         double eta = -c + n; 
         double chi = 2*d;
