@@ -16,10 +16,6 @@ void mlgetsuff(tree& x, tree::tree_p nx, size_t v, size_t c, xinfo& xi, mlogitdi
 
    for(size_t i=0;i<mdi.n;i++) {
       xx = mdi.x + i*mdi.p;
-
-      if (isnan(mdi.phi[i])){cout << "phi_" << i << " is nan" << endl; exit(1);}
-      if (isnan(mdi.f[mdi.ik*mdi.n + i])){cout << "mdi.f_" << i << " is nan" << ", class " << mdi.ik << endl; exit(1);}
-
       if(nx==x.bn(xx,xi)) { //does the bottom node = xx's bottom node
          if(xx[v] < xi[v][c]) {
             if (mdi.y[i] == mdi.ik) {nl++;} // does xx belong to category ik
@@ -44,10 +40,6 @@ void mlgetsuff(tree& x, tree::tree_p l, tree::tree_p r, xinfo& xi, mlogitdinfo& 
    for(size_t i=0;i<mdi.n;i++) {
       xx = mdi.x + i*mdi.p;
       tree::tree_cp bn = x.bn(xx,xi);
-
-      if (isnan(mdi.phi[i])){cout << "phi_" << i << " is nan" << endl; exit(1);}
-      if (isnan(mdi.f[mdi.ik*mdi.n + i])){cout << "mdi.f_" << i << " is nan" << ", class " << mdi.ik << endl; exit(1);}
-
       if(bn==l) {
         if (mdi.y[i] == mdi.ik) {nl++;}
         syl += mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]);
@@ -82,10 +74,6 @@ void mlallsuff(tree& x, xinfo& xi, mlogitdinfo& mdi, tree::npv& bnv, std::vector
       xx = mdi.x + i*mdi.p;
       tbn = x.bn(xx,xi);
       ni = bnmap[tbn];
-
-      if (isnan(mdi.phi[i])){cout << "phi_" << i << " is nan" << endl; exit(1);}
-      if (isnan(mdi.f[mdi.ik*mdi.n + i])){cout << "mdi.f_" << i << " is nan" << ", class " << mdi.ik << endl; exit(1);}
-
       if (mdi.y[i] == mdi.ik) {++(nv[ni]);}
       syv[ni] += mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]);
     //   cout << "phi = " << mdi.phi[i] << "; f = " << mdi.f[mdi.ik*mdi.n + i] << endl;
@@ -243,15 +231,11 @@ void drphi(double *phi, double *allfit, size_t n, size_t k, rn& gen)
             sum_fit += exp(allfit[j*n + i]);
         }
         phi[i] = gen.gamma(1, sum_fit); 
-        if (isnan(phi[i])) {cout << "phi_" << i << " is nan, sum_fit = " << sum_fit << endl; exit(1);}
     }
 }
 // return the nomalization term for generazlied inverse gaussian (gig) distribution, see mlnomial BART, Jared Murray
 double gignorm(double eta, double chi, double psi) 
 { 
-    if (isinf(psi)){
-        cout << "psi = inf" << endl; exit(1);
-    }
     double ret;
     if ((eta > 0)&&(chi==0)&&(psi>0)){
         ret = exp(lgamma(eta) + eta * log(2 / psi));
@@ -260,9 +244,6 @@ double gignorm(double eta, double chi, double psi)
     }else if ((chi>0)&&(psi>0)){
         double bessel_k = cyl_bessel_k(eta, sqrt(chi*psi));
         ret = exp(log(2*bessel_k) - (eta / 2) * log(psi / chi));
-    }else{
-        cout << "Warning: no solution for gignorm with eta = "<< eta <<", chi = " << chi <<", psi = "<< psi << endl;
-        exit(1);
     }
     return ret;
 }
