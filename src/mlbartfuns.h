@@ -23,6 +23,7 @@
 #include "tree.h"
 #include "treefuns.h"
 #include "info.h"
+#include "bartfuns.h"
 
 void mlgetsuff(tree& x, tree::tree_p nx, size_t v, size_t c, xinfo& xi, mlogitdinfo& di, size_t& nl, double& syl, size_t& nr, double& syr);
 
@@ -41,5 +42,11 @@ void drphi(double *phi, double *allfit, size_t n, size_t k, rn& gen);
 double gignorm(double eta, double chi, double psi);
 
 double lgigkernal(double x, double eta, double chi, double psi);
+
+double getpbShrTr(std::vector<tree>& trees, size_t tree_iter, size_t k, xinfo& xi, pinfo& pi, std::vector<tree::npv>& goodbots);
+
+size_t bpropShrTr(tree& x, xinfo& xi, pinfo& pi, tree::npv& goodbots, double& PBx, tree::tree_p& nx, size_t& v, size_t& c, double& pr, std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen);
+
+size_t dpropShrTr(tree& x, xinfo& xi, pinfo& pi,tree::npv& goodbots, double& PBx, tree::tree_p& nx, double& pr, rn& gen);
 
 #endif

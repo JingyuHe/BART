@@ -30,30 +30,30 @@ public:
    mlbart(size_t ik);
    mlbart(size_t ik, size_t im);
 
+   //friends
+   friend bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& pi, double *phi, 
+	     std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen);
+
+   friend bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& pi, double *phi, 
+	     std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen);
+
    void setprior(double m, double a0, double alpha, double beta) // by default a0 = 3.5/sqrt(2)
       {mpi.a0=a0; mpi.c = m / pow(a0, 2) + 0.5; mpi.d=m / pow(a0, 2); mpi.z3 = exp(lgamma(mpi.c) - mpi.c * log(mpi.d));
       cout << "prior a0 = " << a0 << ", m = " << m << ", c=" <<  mpi.c << ", d=" << mpi.d << ", z3 = "<< mpi.z3 << endl;
        pi.alpha = alpha; pi.mybeta = beta;
       }
-   void setdata(size_t p, size_t n, double *x, double *y, int *nc);
-   void predict(size_t p, size_t n, double *x, double *fp);
+   void setdata(size_t p, size_t n, double *x, double *y, int *nc, bool separate);
+   void predict(size_t p, size_t n, double *x, double *fp, bool normalize);
    void draw(rn& gen);
 
 protected:
+   bool separate;
    size_t k; // number of categories
    double *phi;
    mlogitdinfo mdi;
    mlogitpinfo mpi;
 };
 
-class mlbartShrtr: public mlbart
-{
-   public:
-   // constructor
-   mlbartShrtr(size_t ik): mlbart(ik) {}
-   mlbartShrtr(size_t ik, size_t im): mlbart (ik, im) {}
 
-   void draw(rn& gen);
-};
 
 #endif

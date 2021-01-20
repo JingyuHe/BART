@@ -29,4 +29,8 @@
 bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& pi, double *phi, 
 	     std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen);
 
+bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& pi, double *phi, 
+	     std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen);
+
+
 #endif
