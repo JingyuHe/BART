@@ -26,22 +26,68 @@ void heterbart::pr()
    bart::pr();
 }
 //--------------------------------------------------
-void heterbart::draw(double *sigma, rn& gen)
+void heterbart::draw(double *sigma, rn &gen)
 {
-   for(size_t j=0;j<m;j++) {
-      fit(t[j],xi,p,n,x,ftemp);
-      for(size_t k=0;k<n;k++) {
-         allfit[k] = allfit[k]-ftemp[k];
-         r[k] = y[k]-allfit[k];
+   for (size_t j = 0; j < m; j++)
+   {
+      fit(t[j], xi, p, n, x, ftemp);
+      for (size_t k = 0; k < n; k++)
+      {
+         allfit[k] = allfit[k] - ftemp[k];
+         r[k] = y[k] - allfit[k];
       }
-      heterbd(t[j],xi,di,pi,sigma,nv,pv,aug,gen);
-      heterdrmu(t[j],xi,di,pi,sigma,gen);
-      fit(t[j],xi,p,n,x,ftemp);
-      for(size_t k=0;k<n;k++) allfit[k] += ftemp[k];
+      heterbd(t[j], xi, di, pi, sigma, nv, pv, aug, gen);
+      heterdrmu(t[j], xi, di, pi, sigma, gen);
+      fit(t[j], xi, p, n, x, ftemp);
+      for (size_t k = 0; k < n; k++)
+         allfit[k] += ftemp[k];
    }
-   if(dartOn) {
-     draw_s(nv,lpv,theta,gen);
-     draw_theta0(const_theta,theta,lpv,a,b,rho,gen);
-     for(size_t j=0;j<p;j++) pv[j]=::exp(lpv[j]);
+   if (dartOn)
+   {
+      draw_s(nv, lpv, theta, gen);
+      draw_theta0(const_theta, theta, lpv, a, b, rho, gen);
+      for (size_t j = 0; j < p; j++)
+         pv[j] = ::exp(lpv[j]);
+   }
+}
+
+void heterbart::draw2(double *sigma, rn &gen, size_t np, double *ixp, double *temp_vec)
+{
+   for (size_t j = 0; j < m; j++)
+   {
+      fit(t[j], xi, p, n, x, ftemp);
+      for (size_t k = 0; k < n; k++)
+      {
+         allfit[k] = allfit[k] - ftemp[k];
+         r[k] = y[k] - allfit[k];
+      }
+
+         this->predict(p, np, ixp, temp_vec);
+   cout << "m is " << m << " test 2 " << temp_vec[0] << ' ' << temp_vec[1] << ' ' << temp_vec[2] << endl;
+
+      heterbd(t[j], xi, di, pi, sigma, nv, pv, aug, gen);
+
+               this->predict(p, np, ixp, temp_vec);
+   cout << "m is " << m << " test 3 " << temp_vec[0] << ' ' << temp_vec[1] << ' ' << temp_vec[2] << endl;
+
+      heterdrmu(t[j], xi, di, pi, sigma, gen);
+
+               this->predict(p, np, ixp, temp_vec);
+   cout << "m is " << m << " test 4 " << temp_vec[0] << ' ' << temp_vec[1] << ' ' << temp_vec[2] << endl;
+
+      fit(t[j], xi, p, n, x, ftemp);
+
+               this->predict(p, np, ixp, temp_vec);
+   cout << "m is " << m << " test 5 " << temp_vec[0] << ' ' << temp_vec[1] << ' ' << temp_vec[2] << endl;
+
+      for (size_t k = 0; k < n; k++)
+         allfit[k] += ftemp[k];
+   }
+   if (dartOn)
+   {
+      draw_s(nv, lpv, theta, gen);
+      draw_theta0(const_theta, theta, lpv, a, b, rho, gen);
+      for (size_t j = 0; j < p; j++)
+         pv[j] = ::exp(lpv[j]);
    }
 }
