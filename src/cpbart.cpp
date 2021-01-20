@@ -69,46 +69,26 @@ RcppExport SEXP cpbart(
 
    //--------------------------------------------------
    //process args
-   // number of observations in training
    size_t n = Rcpp::as<int>(_in);
-   // number of X variables
-   size_t p = Rcpp::as<int>(_ip);   
-   // number of observations in testing
+   size_t p = Rcpp::as<int>(_ip);
    size_t np = Rcpp::as<int>(_inp);
-
-   // vector of x 
    Rcpp::NumericVector  xv(_ix);
    double *ix = &xv[0];
-   // vector of y
    Rcpp::IntegerVector  yv(_iy); // binary
    int *iy = &yv[0];
-   // vector of x test
    Rcpp::NumericVector  xpv(_ixp);
    double *ixp = &xpv[0];
-   // number of trees
    size_t m = Rcpp::as<int>(_im);
-   // vector of cutpoints
    //size_t nc = Rcpp::as<int>(_inc);
    Rcpp::IntegerVector _nc(_inc);
    int *numcut = &_nc[0];
-
-
-   //size_t nc = Rcpp::as<int>(_inc);
-
-   // number of kept draws
    size_t nd = Rcpp::as<int>(_ind);
-   // burnin number
    size_t burn = Rcpp::as<int>(_iburn);
-   // beta
    double mybeta = Rcpp::as<double>(_ipower);
-   // alpha
    double alpha = Rcpp::as<double>(_ibase);
-   // binary offset, for probit link function only
    double binaryOffset = Rcpp::as<double>(_binaryOffset);
-   //tau
    double tau = Rcpp::as<double>(_itau);
-// double rootM = sqrt(Rcpp::as<double>(_iM));
-// there is no nu, lambda, sigma here
+//   double rootM = sqrt(Rcpp::as<double>(_iM));
    bool dart;
    if(Rcpp::as<int>(_idart)==1) dart=true;
    else dart=false;
