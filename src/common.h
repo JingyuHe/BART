@@ -31,8 +31,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <math.h> 
-#include <cmath>
 
 using std::endl;
 

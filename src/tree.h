@@ -54,7 +54,8 @@ public:
    tree(const tree& n): theta(0.0),v(0),c(0),p(0),l(0),r(0) {cp(this,&n);}
    tree(double itheta): theta(itheta),v(0),c(0),p(0),l(0),r(0) {}
    void tonull(); //like a "clear", null tree has just one node
-   ~tree() {tonull();}
+   // ~tree() {tonull();}
+   ~tree() {;}
    //operators----------
    tree& operator=(const tree&);
    //interface--------------------
@@ -91,6 +92,9 @@ public:
    char ntype(); //node type t:top, b:bot, n:no grandchildren i:interior (t can be b)
    bool isnog();
    size_t getbadcut(size_t v);
+   void cp(tree_p n,  tree_cp o); //copy tree
+   void copy_only_root(tree_p o);
+
 #ifndef NoRcpp   
   Rcpp::List tree2list(xinfo& xi, double center=0., double scale=1.); // create an efficient list from a single tree
   //tree list2tree(Rcpp::List&, xinfo& xi); // create a tree from a list and an xinfo  
@@ -106,7 +110,6 @@ private:
    tree_p l; //left child
    tree_p r; //right child
    //utiity functions
-   void cp(tree_p n,  tree_cp o); //copy tree
 };
 std::istream& operator>>(std::istream&, tree&);
 std::ostream& operator<<(std::ostream&, const tree&);
