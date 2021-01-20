@@ -68,46 +68,26 @@ RcppExport SEXP cwbart(
 
    //--------------------------------------------------
    //process args
-   // number of observations in training
    size_t n = Rcpp::as<int>(_in);
-   // number of X variables
    size_t p = Rcpp::as<int>(_ip);
-   // number of observations in testing
    size_t np = Rcpp::as<int>(_inp);
-
-   // vector of x 
    Rcpp::NumericVector  xv(_ix);
    double *ix = &xv[0];
-   // vector of y
    Rcpp::NumericVector  yv(_iy); 
    double *iy = &yv[0];
-   // vector of x test
    Rcpp::NumericVector  xpv(_ixp);
    double *ixp = &xpv[0];
-   // number of trees
    size_t m = Rcpp::as<int>(_im);
-   // vector of cutpoints
    Rcpp::IntegerVector _nc(_inc);
    int *numcut = &_nc[0];
-
-
    //size_t nc = Rcpp::as<int>(_inc);
-
-   // number of kept draws
    size_t nd = Rcpp::as<int>(_ind);
-   // burnin number
    size_t burn = Rcpp::as<int>(_iburn);
-   // beta
    double mybeta = Rcpp::as<double>(_ipower);
-   // alpha
    double alpha = Rcpp::as<double>(_ibase);
-   // tau
    double tau = Rcpp::as<double>(_itau);
-   // nu
    double nu = Rcpp::as<double>(_inu);
-   // lambda for sigma prior
    double lambda = Rcpp::as<double>(_ilambda);
-   // initial value of sigma
    double sigma=Rcpp::as<double>(_isigest);
    Rcpp::NumericVector  wv(_iw); 
    double *iw = &wv[0];
@@ -146,8 +126,6 @@ RcppExport SEXP cwbart(
    //random number generation
    arn gen;
 
-
-   // initiailize bm object, which contains trees
    heterbart bm(m);
 
    if(Xinfo.size()>0) {
@@ -263,14 +241,8 @@ void cwbart(
 
    //--------------------------------------------------
    //heterbart bm(m);
-   
-   // prior parameters
    bm.setprior(alpha,mybeta,tau);
-
-   // data, ix is cutpoints, numcut is number of adaptive cutpoints
    bm.setdata(p,n,ix,iy,numcut);
-
-   // set dart priors
    bm.setdart(a,b,rho,aug,dart,theta,omega);
 
    //--------------------------------------------------
@@ -294,8 +266,6 @@ void cwbart(
    double* fhattest=0; //posterior mean for prediction
    if(np) { fhattest = new double[np]; }
    double restemp=0.0,rss=0.0;
-cout << "tree size is " << bm.gettree(0).treesize() << endl; 
-cout << "v and c " << bm.gettree(0).getv() << " " << bm.gettree(0).getc() << endl;
 
 
    //--------------------------------------------------
@@ -313,21 +283,16 @@ cout << "v and c " << bm.gettree(0).getv() << " " << bm.gettree(0).getc() << end
    xinfo& xi = bm.getxinfo();
 
    for(size_t i=0;i<(nd+burn);i++) {
-      // loop over forests
-
       if(i%printevery==0) printf("done %zu (out of %lu)\n",i,nd+burn);
       if(i==(burn/2)&&dart) bm.startdart();
-      
       //draw bart
       bm.draw(svec,gen);
-      
       //draw sigma
       rss=0.0;
       for(size_t k=0;k<n;k++) {restemp=(iy[k]-bm.f(k))/(iw[k]); rss += restemp*restemp;}
       sigma = sqrt((nu*lambda + rss)/gen.chi_square(n+nu));
       for(size_t k=0;k<n;k++) svec[k]=iw[k]*sigma;
       sdraw[i]=sigma;
-      
       if(i>=burn) {
          for(size_t k=0;k<n;k++) trmean[k]+=bm.f(k);
          if(nkeeptrain && (((i-burn+1) % skiptr) ==0)) {
