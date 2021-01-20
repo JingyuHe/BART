@@ -94,7 +94,7 @@ mc.crisk.pwbart <- function(
     pred$K <- K
 
     pred$yhat.test <- yhat.test.list[[1]]
-    if(class(pred$yhat.test)[1]!='matri[1]x') return(pred$yhat.test)
+    if(class(pred$yhat.test)[1]!='matrix') return(pred$yhat.test)
 
     pred$yhat.test2 <- yhat.test2.list[[1]]
     if(class(pred$yhat.test)[1]!='matrix') return(pred$yhat.test)

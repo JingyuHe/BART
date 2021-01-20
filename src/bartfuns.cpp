@@ -78,7 +78,6 @@ void getsuff(tree& x, tree::tree_p nx, size_t v, size_t c, xinfo& xi, dinfo& di,
    nr=0; syr=0.0;
 
    for(size_t i=0;i<di.n;i++) {
-      // loop over all data
       xx = di.x + i*di.p;
       if(nx==x.bn(xx,xi)) { //does the bottom node = xx's bottom node
          if(xx[v] < xi[v][c]) {
@@ -92,7 +91,7 @@ void getsuff(tree& x, tree::tree_p nx, size_t v, size_t c, xinfo& xi, dinfo& di,
    }
 
 }
-//lh, replacement for lil that only depends on sum y. depend on model
+//lh, replacement for lil that only depends on sum y.
 double lh(size_t n, double sy, double sigma, double tau)
 {
    double s2 = sigma*sigma;
@@ -111,10 +110,9 @@ double pgrow(tree::tree_p n, xinfo& xi, pinfo& pi)
    }
 }
 //--------------------------------------------------
-//compute n and \sum y_i for left and right bots, depend on model
+//compute n and \sum y_i for left and right bots
 void getsuff(tree& x, tree::tree_p l, tree::tree_p r, xinfo& xi, dinfo& di, size_t& nl, double& syl, size_t& nr, double& syr)
 {
-   // calculate sufficient statistics for syl and syr
    double *xx;//current x
    nl=0; syl=0.0;
    nr=0; syr=0.0;
@@ -133,7 +131,7 @@ void getsuff(tree& x, tree::tree_p l, tree::tree_p r, xinfo& xi, dinfo& di, size
    }
 }
 //--------------------------------------------------
-//get sufficients stats for all bottom nodes, this way just loop through all the data once. depend on model
+//get sufficients stats for all bottom nodes, this way just loop through all the data once.
 void allsuff(tree& x, xinfo& xi, dinfo& di, tree::npv& bnv, std::vector<size_t>& nv, std::vector<double>& syv)
 {
    tree::tree_cp tbn; //the pointer to the bottom node for the current observations
@@ -307,7 +305,7 @@ void bprop(tree& x, xinfo& xi, pinfo& pi, tree::npv& goodbots, double& PBx, tree
 // death proposal
 void dprop(tree& x, xinfo& xi, pinfo& pi,tree::npv& goodbots, double& PBx, tree::tree_p& nx, double& pr, rn& gen)
 {
-      //draw no grandchild node, any nog node is a possibility
+      //draw nog node, any nog node is a possibility
       tree::npv nognds; //nog nodes
       x.getnogs(nognds);
       size_t ni = floor(gen.uniform()*nognds.size());
@@ -344,7 +342,7 @@ void dprop(tree& x, xinfo& xi, pinfo& pi,tree::npv& goodbots, double& PBx, tree:
       pr =  ((1.0-PGny)*PBy*Pboty)/(PGny*(1.0-PGlx)*(1.0-PGrx)*PDx*Pnogx);
 }
 //--------------------------------------------------
-//draw one mu from post, depend on model
+//draw one mu from post 
 double drawnodemu(size_t n, double sy, double tau, double sigma, rn& gen)
 {
    double s2 = sigma*sigma;
