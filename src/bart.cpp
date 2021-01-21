@@ -85,6 +85,15 @@ void bart::setdata(size_t p, size_t n, double *x, double *y, size_t numcut)
   delete [] nc;
 }
 
+void bart::settree(std::vector<tree> &tree_copy)
+{
+   for (size_t i = 0; i < tree_copy.size(); i++)
+   {
+      t[i].copy_only_root(&(tree_copy[i]));
+   }
+   return;
+}
+
 void bart::setdata(size_t p, size_t n, double *x, double *y, int *nc)
 {
    this->p=p; this->n=n; this->x=x; this->y=y;

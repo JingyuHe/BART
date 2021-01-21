@@ -65,6 +65,8 @@ public:
        this->theta=_theta;
      }
 }
+   // initialize bart object from a vector of trees 
+   void settree(std::vector< tree >& tree_copy);
    void startdart() {this->dartOn=!(this->dartOn);}
    void settau(double tau) {pi.tau=tau;}
    tree& gettree(size_t i ) { return t[i];}
