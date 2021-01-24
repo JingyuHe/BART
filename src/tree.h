@@ -63,6 +63,9 @@ public:
    void settheta(double theta) {this->theta=theta;}
    void setv(size_t v) {this->v = v;}
    void setc(size_t c) {this->c = c;}
+   void setp(tree_p p) {this->p = p;}
+   void setl(tree_p l) {this->l = l;}
+   void setr(tree_p r) {this->r = r;}
    //get
    double gettheta() const {return theta;}
    size_t getv() const {return v;}
@@ -113,5 +116,6 @@ private:
 };
 std::istream& operator>>(std::istream&, tree&);
 std::ostream& operator<<(std::ostream&, const tree&);
+std::istream& operator>>(std::istream& is, std::vector<tree> &tmat);
 
 #endif
