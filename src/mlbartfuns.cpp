@@ -6,7 +6,80 @@
 
 
 using namespace boost::math;
+//--------------------------------------------------
+// load classification tree from output of XBART for warm start
+void load_classification_tree(std::istream& is, tree &t, size_t itree, size_t iclass)
+{  
+   size_t tid,pid; //tid: id of current node, pid: parent's id
+   std::map<size_t,tree::tree_p> pts;  //pointers to nodes indexed by node id
+   size_t nn; //number of nodes
+   double temp = 0.0;
+   t.tonull();
+   size_t theta_size;
+   is >> theta_size;
 
+   //read number of nodes----------
+   is >> nn;
+   // cout << "size of loaded tree " << itree << " " << iclass << " " << nn << endl;
+   // cout << "size of theta " << theta_size << endl;
+   if(!is) {
+      // cout << ">> error: unable to read number of nodes" << endl; 
+      return;
+   }
+
+   //read in vector of node information----------
+   std::vector<node_info> nv(nn);
+   for(size_t i=0;i!=nn;i++) 
+   {
+      // is >> nv[i].id >> nv[i].v >> nv[i].c >> nv[i].theta;
+      is >> nv[i].id >> nv[i].v >> nv[i].c;
+      // cout << "node info of " << i << " node " << nv[i].id << " " << nv[i].v << " " << nv[i].c << endl;
+      for(size_t kk = 0; kk < theta_size; kk++)
+      {  
+         // XBART returns a entire vector of theta, take the one we need
+         if(kk == iclass){
+            is >> nv[i].theta;
+         }else{
+            is >> temp;
+         }
+      }
+      // cout << "loaded theta " << nv[i].theta << endl;
+
+      // cout << "values read in " << nv[i].id << " " << nv[i].v << " " << nv[i].c << " " << nv[i].theta << endl;
+      if(!is) {
+         // cout << ">> error: unable to read node info, on node  " << i+1 << endl;
+         return;
+      }
+   }
+   //first node has to be the top one
+   pts[1] = &(t); //careful! this is not the first pts, it is pointer of id 1.
+   t.setv(nv[0].v); 
+   t.setc(nv[0].c); 
+   t.settheta(nv[0].theta);
+   t.setp(0);
+
+   //now loop through the rest of the nodes knowing parent is already there.
+   for(size_t i=1;i!=nv.size();i++) 
+   {
+      tree::tree_p np = new tree;
+      np->setv(nv[i].v); np->setc(nv[i].c); np->settheta(nv[i].theta);
+      tid = nv[i].id;
+      pts[tid] = np;
+      pid = tid/2;
+      // set pointers
+      if(tid % 2 == 0) { //left child has even id
+         pts[pid]->setl(np);
+      } else {
+         pts[pid]->setr(np);
+      }
+      np->setp(pts[pid]);
+   }
+   return;
+}
+
+
+
+//--------------------------------------------------
 //compute r = \sum y_ij and s = \sum phi_i f_(t)(x) for left and right give bot and v,c
 void mlgetsuff(tree& x, tree::tree_p nx, size_t v, size_t c, xinfo& xi, mlogitdinfo& mdi, size_t& nl, double& syl, size_t& nr, double& syr)
 {

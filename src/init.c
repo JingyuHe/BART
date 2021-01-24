@@ -19,6 +19,7 @@ extern SEXP crtnorm(SEXP, SEXP, SEXP, SEXP);
 extern SEXP crtgamma(SEXP, SEXP, SEXP, SEXP);
 extern SEXP cdraw_lambda_i(SEXP, SEXP, SEXP, SEXP);
 extern SEXP mlogitbart(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP mlogitbart_ini(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 /*extern SEXP cdpmbart(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP cdpmwbart(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP cdpgbart(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);*/
@@ -39,6 +40,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"crtgamma",(DL_FUNC) &crtgamma, 4},
     {"cdraw_lambda_i", (DL_FUNC) &cdraw_lambda_i, 4},
     {"mlogitbart", (DL_FUNC) &mlogitbart, 18},
+    {"mlogitbart_ini", (DL_FUNC) &mlogitbart_ini, 19},
 /*  {"cdpgbart",(DL_FUNC) &cdpgbart,35},
     {"cdpmbart",(DL_FUNC) &cdpmbart,25},
     {"cdpmwbart",(DL_FUNC) &cdpmwbart,27}, */

@@ -185,31 +185,29 @@ void mlogitbart_ini(
 #endif
 
 
-   // load trees
    Rcpp::CharacterVector itrees(Rcpp::wrap(_treedraws));
    std::string itv(itrees[0]);
    std::stringstream ttss(itv);
+   // initialize a vector to save trees
+   // it is length num_trees * num_class, list by all classes first, then the index of tree in the forest
+   std::vector<tree> tmat(m * k);
 
-   // _r suffix for "read from trees"
    bool separate_tree_r;
    size_t num_class_r, num_sweeps_r, num_trees_r, p_r;
    ttss >> separate_tree_r >> num_class_r >> num_sweeps_r >> num_trees_r >> p_r;
-cout << "loaded parameters " << separate_tree_r << " " << num_class_r << " " << num_sweeps_r << " " << num_trees_r << " " << p_r << endl;
-   std::vector<tree> tmat(num_trees_r);
-   // for(size_t i=0;i<ndd;i++)
-   // {
-   //    tmat[i].resize(mm);
-   // }
-   // for(size_t i=0;i<ndd;i++) {
-   for (size_t j = 0; j < num_trees_r; j++)
+
+   cout << "loaded data " << separate_tree_r << " " << num_class_r << " " << num_sweeps_r << " " << num_trees_r << " " << p_r << endl; 
+   
+   for(size_t itree = 0; itree < num_trees_r; itree ++ )
    {
-      ttss >> tmat[j];
+      for(size_t iclass = 0; iclass < num_class_r; iclass ++ )
+      {
+         cout << "load tree " << itree << " " << iclass << endl;
+         load_classification_tree(ttss, tmat[itree * num_trees_r + iclass], itree, iclass);
+         cout << "loaded tree " << tmat[itree * num_trees_r + iclass ] << endl;
+         cout << "-------------------" << endl;
+      }
    }
-   // }}
-
-   // cout << "trees read in " << endl;
-   // cout << tmat[0][0].treesize() << endl;
-
 
 
    std::stringstream treess;  //string stream to write trees to
@@ -263,8 +261,8 @@ cout << "loaded parameters " << separate_tree_r << " " << num_class_r << " " << 
    //set up BART model
    // copy the last forest of XBART as initialization of BART forest
    cout << "tmat size " << tmat.size() << endl;
-   bm.settree(tmat);
-   cout << "tree size of read in " << tmat[1].treesize() << endl;
+   // bm.settree(tmat);
+   cout << "tree size of read in " << tmat[0].treesize() << endl;
    cout << "theta " << bm.gettree(0).gettheta() << endl;
    cout << "v and c " << bm.gettree(0).getv() << " " << bm.gettree(0).getc() << endl;
 
@@ -301,7 +299,9 @@ cout << "loaded parameters " << separate_tree_r << " " << num_class_r << " " << 
       //if(i%printevery==0) printf("%22zu/%zu\r",i,total);
       // if(i==(burn/2)&&dart) bm.startdart();
       //draw bart
+      cout << "fine 1" << endl;
       bm.draw(gen);
+      cout << "fine 2" << endl;
 
    //    //draw sigma
    //    if(type==1) {

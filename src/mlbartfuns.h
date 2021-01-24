@@ -49,4 +49,6 @@ size_t bpropShrTr(tree& x, xinfo& xi, pinfo& pi, tree::npv& goodbots, double& PB
 
 size_t dpropShrTr(tree& x, xinfo& xi, pinfo& pi,tree::npv& goodbots, double& PBx, tree::tree_p& nx, double& pr, rn& gen);
 
+void load_classification_tree(std::istream& is, tree &t, size_t itree, size_t iclass);
+
 #endif

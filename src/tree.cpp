@@ -372,52 +372,94 @@ std::istream& operator>>(std::istream& is, tree& t)
 // 
 std::istream& operator>>(std::istream& is, std::vector<tree> &tmat)
 {
+   // load trees
+   // load parameters from XBART, check whether they match BART parameters or not
+   bool separate_tree;
+   size_t num_class, num_sweeps, num_trees, p;
+   is >> separate_tree >> num_class >> num_sweeps >> num_trees >> p;
+
+   cout << "loaded data " << separate_tree << " " << num_class << " " << num_sweeps << " " << num_trees << " " << p << endl; 
+   
    size_t tid,pid; //tid: id of current node, pid: parent's id
-   std::map<size_t,tree::tree_p> pts;  //pointers to nodes indexed by node id
    size_t nn; //number of nodes
-
-   tmat[0].tonull(); // obliterate old tree (if there)
-
-   //read size of theta
    size_t theta_size;
-   is >> theta_size;
+   size_t count;
+   double temp;
 
-   //read number of nodes----------
-   is >> nn;
-   if(!is) {
-      //cout << ">> error: unable to read number of nodes" << endl;
-      return is;
-   }
+   // tmat is a vector of num_class * num_trees trees
+   // it list the first tree of all classes first, then second tree of all classes ... 
+   // tmat[itree * num_trees + iclass]
 
-   //read in vector of node information----------
-   std::vector<node_info> nv(nn);
-   for(size_t i=0;i!=nn;i++) {
-      is >> nv[i].id >> nv[i].v >> nv[i].c >> nv[i].theta;
-      // cout << "values read in " << nv[i].id << " " << nv[i].v << " " << nv[i].c << " " << nv[i].theta << endl;
-      if(!is) {
-         //cout << ">> error: unable to read node info, on node  " << i+1 << endl;
-         return is;
+   for(size_t itree = 0; itree < num_trees; itree++)
+   {
+      for(size_t iclass = 0; iclass < num_class; iclass++)
+      {
+         cout << "loop index " << itree << " " << num_trees << " " << iclass << " " << num_class << endl;
+         tmat[itree * num_trees + iclass].tonull(); // obliterate old tree (if there)
+
+         //read size of theta
+         is >> theta_size;
+
+         //read number of nodes----------
+         is >> nn;
+         cout << "size of loaded tree " << itree << " " << iclass << " " << nn << endl;
+         cout << "size of theta " << theta_size << endl;
+         if(!is) {
+            cout << ">> error: unable to read number of nodes" << endl; 
+            return is;
+         }
+
+         //read in vector of node information----------
+         std::vector<node_info> nv(nn);
+         for(size_t i=0;i!=nn;i++) {
+            // is >> nv[i].id >> nv[i].v >> nv[i].c >> nv[i].theta;
+
+            is >> nv[i].id >> nv[i].v >> nv[i].c;
+
+            cout << "node info of " << i << " node " << nv[i].id << " " << nv[i].v << " " << nv[i].c << endl;
+
+            for(size_t kk = 0; kk < theta_size; kk++)
+            {  
+               // XBART returns a entire vector of theta, take the one we need
+               if(kk == iclass){
+                  is >> nv[i].theta;
+               }else{
+                  is >> temp;
+               }
+            }
+            cout << "loaded theta " << nv[i].theta << endl;
+
+            // cout << "values read in " << nv[i].id << " " << nv[i].v << " " << nv[i].c << " " << nv[i].theta << endl;
+            if(!is) {
+               cout << ">> error: unable to read node info, on node  " << i+1 << endl;
+               return is;
+            }
+         }
+         //first node has to be the top one
+         std::map<size_t,tree::tree_p> pts;  //pointers to nodes indexed by node id
+      
+         pts[1] = &(tmat[itree * num_trees + iclass]); //careful! this is not the first pts, it is pointer of id 1.
+         tmat[itree * num_trees + iclass].setv(nv[0].v); 
+         tmat[itree * num_trees + iclass].setc(nv[0].c); 
+         tmat[itree * num_trees + iclass].settheta(nv[0].theta);
+         tmat[itree * num_trees + iclass].setp(0);
+
+         //now loop through the rest of the nodes knowing parent is already there.
+         for(size_t i=1;i!=nv.size();i++) {
+            tree::tree_p np = &(tmat[itree * num_trees + iclass]);
+            np->setv(nv[i].v); np->setc(nv[i].c); np->settheta(nv[i].theta);
+            tid = nv[i].id;
+            pts[tid] = np;
+            pid = tid/2;
+            // set pointers
+            if(tid % 2 == 0) { //left child has even id
+               pts[pid]->setl(np);
+            } else {
+               pts[pid]->setr(np);
+            }
+            np->setp(pts[pid]);
+         }
       }
-   }
-   //first node has to be the top one
-   pts[1] = &(tmat[0]); //careful! this is not the first pts, it is pointer of id 1.
-   tmat[0].setv(nv[0].v); tmat[0].setc(nv[0].c); tmat[0].settheta(nv[0].theta);
-   tmat[0].setp(0);
-
-   //now loop through the rest of the nodes knowing parent is already there.
-   for(size_t i=1;i!=nv.size();i++) {
-      tree::tree_p np = &(tmat[0]);
-      np->setv(nv[i].v); np->setc(nv[i].c); np->settheta(nv[i].theta);
-      tid = nv[i].id;
-      pts[tid] = np;
-      pid = tid/2;
-      // set pointers
-      if(tid % 2 == 0) { //left child has even id
-         pts[pid]->setl(np);
-      } else {
-         pts[pid]->setr(np);
-      }
-      np->setp(pts[pid]);
    }
    return is;
 }

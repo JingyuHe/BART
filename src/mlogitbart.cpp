@@ -102,33 +102,37 @@ void mlbart::predict(size_t p, size_t n, double *x, double *fp, bool normalize)
 void mlbart::draw(rn& gen)
 {
    for(size_t j=0; j< (size_t) m/k;j++) {
+      // cout << "ok 1" << endl;
       drphi(phi, allfit, n, k, gen);
       if (separate){
+         // cout << "ok 2" << endl;
          for(size_t ik = 0; ik < k; ik++){ // loop through categories
             // update allfit for class ik
             mdi.ik = ik;
             fit(t[j*k + ik],xi,p,n,x,&ftemp[ik * n]); 
             for(size_t i=0;i<n;i++) allfit[ik * n + i] += - log(ftemp[ik * n + i]);
             //bd function 
+            // cout << "ok 3" << endl;
             mlbd(t[j*k + ik],xi,mdi,mpi,phi,nv,pv,aug,gen);
-
+            // cout << "ok 4" << endl;
             // update allfit with new lambdas
             drlamb(t[j*k + ik],xi,mdi,mpi,gen);
+            // cout << "ok 5" << endl;
             fit(t[j*k + ik],xi,p,n,x,&ftemp[ik * n]); // update ftemp, ftemp[i, k] is *(k*n + i)
             for(size_t i=0;i<n;i++) allfit[ik * n + i] += log(ftemp[ik * n + i]);
          }
       } else{ // shared tree
-         
+         // cout << "ok 6" << endl;
          // update allfit for class ik
          for(size_t ik = 0; ik < k; ik++){ // loop through categories
             mdi.ik = ik;
             fit(t[j*k + ik],xi,p,n,x,&ftemp[ik * n]);
             for(size_t i=0;i<n;i++) allfit[ik * n + i] += - log(ftemp[ik * n + i]);
          }
-
+// cout << "ok7" << endl;
          // bd function, shared tree version
          mlbdShrTr(t,j,xi,mdi,mpi,phi,nv,pv,aug,gen);
-
+// cout << "ok8" << endl;
          // update allfit with new lambdas
          for (size_t ik = 0; ik < k; ik ++) {
             mdi.ik = ik;
