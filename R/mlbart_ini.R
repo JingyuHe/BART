@@ -247,5 +247,6 @@ mlbart_ini=function(treedraws,
     res$varprob.mean <- apply(res$varprob, 2, mean)
     res$rm.const <- rm.const
     attr(res, 'class') <- type
+    res$xinfo = xinfo
     return(res)
 }

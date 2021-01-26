@@ -8,16 +8,19 @@
 using namespace boost::math;
 //--------------------------------------------------
 // load classification tree from output of XBART for warm start
-void load_classification_tree(std::istream& is, tree &t, size_t itree, size_t iclass)
+void load_classification_tree(std::istream& is, tree &t, size_t itree, size_t iclass, xinfo& xi)
 {  
    size_t tid,pid; //tid: id of current node, pid: parent's id
    std::map<size_t,tree::tree_p> pts;  //pointers to nodes indexed by node id
    size_t nn; //number of nodes
    double temp = 0.0;
+   size_t temp_index = 0;
    t.tonull();
    size_t theta_size;
    is >> theta_size;
 
+   double temp_c = 0.0;
+// cout << "size of xi " << xi.size() << " " << xi[0].size() << endl;
    //read number of nodes----------
    is >> nn;
    // cout << "size of loaded tree " << itree << " " << iclass << " " << nn << endl;
@@ -32,8 +35,28 @@ void load_classification_tree(std::istream& is, tree &t, size_t itree, size_t ic
    for(size_t i=0;i!=nn;i++) 
    {
       // is >> nv[i].id >> nv[i].v >> nv[i].c >> nv[i].theta;
-      is >> nv[i].id >> nv[i].v >> nv[i].c;
-      // cout << "node info of " << i << " node " << nv[i].id << " " << nv[i].v << " " << nv[i].c << endl;
+
+      // the raw output of XBART is raw value of cutpoints
+      // BART define cutpoint by its index in the xi matrix
+      is >> nv[i].id >> nv[i].v >> temp_c; // >> nv[i].c;
+
+      // search index in xi for the cutpoint
+      temp_index = 0;
+
+      while(xi[nv[i].v][temp_index] <= temp_c){
+         temp_index ++ ;
+      }
+
+      if(temp_index >= xi[0].size())
+      {
+         // avoid overflow
+         temp_index = xi[0].size() - 1;
+      }
+
+      nv[i].c = temp_index;
+      
+      // cout << "cutpoint of XBART: " << temp_c << " cutpoint loaded: " << xi[nv[i].v][nv[i].c] << endl;
+
       for(size_t kk = 0; kk < theta_size; kk++)
       {  
          // XBART returns a entire vector of theta, take the one we need

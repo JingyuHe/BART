@@ -59,13 +59,16 @@ y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 
 # num_sweeps = ceiling(200/log(n)) 
 num_sweeps = 20
-burnin = 5
+burnin = 0
 num_trees = 10
 max_depth = 2
 mtry = NULL 
-separate_tree = TRUE
+separate_tree = FALSE
 
-n_posterior = 2000
+
+# extreme case, only draw one posterior sample
+# warm start should be better than the root initialization
+n_posterior = 1
 thinning = 1
 
 

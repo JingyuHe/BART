@@ -139,23 +139,7 @@ RcppExport SEXP cwbart_ini(
    std::stringstream ttss(itv);
    size_t mm, pp;
    ttss >> mm >> pp;
-
-   std::vector<tree> tmat(mm);
-   // for(size_t i=0;i<ndd;i++)
-   // {
-   //    tmat[i].resize(mm);
-   // }
-   // for(size_t i=0;i<ndd;i++) {
-   for (size_t j = 0; j < mm; j++)
-   {
-      ttss >> tmat[j];
-   }
-   // }}
-
-   // cout << "trees read in " << endl;
-   // cout << tmat[0][0].treesize() << endl;
-
-
+   
 
 
    // Xinfo is a matrix of cutpoints, numcut by p
@@ -174,6 +158,19 @@ RcppExport SEXP cwbart_ini(
    }
 
 
+   xinfo &xi = bm.getxinfo();
+cout << "size of xi " << xi.size() << " " << xi[0].size() << endl;
+   std::vector<tree> tmat(mm);
+   // for(size_t i=0;i<ndd;i++)
+   // {
+   //    tmat[i].resize(mm);
+   // }
+   // for(size_t i=0;i<ndd;i++) {
+   for (size_t j = 0; j < mm; j++)
+   {
+      load_regression_tree(ttss, tmat[j], xi);
+   }
+   
    // #else
 
    // #define TRDRAW(a, b) trdraw[a][b]
@@ -356,7 +353,6 @@ RcppExport SEXP cwbart_ini(
 
    time_t tp;
    int time1 = time(&tp);
-   xinfo &xi = bm.getxinfo();
    
    for (size_t i = 0; i < (nd + burn); i++)
    {

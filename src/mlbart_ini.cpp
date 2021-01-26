@@ -112,6 +112,7 @@ RcppExport SEXP mlogitbart_ini(
    mlbart bm(k, m);
 
    if(Xinfo.size()>0) {
+      cout << "create matrix of cutpoints" << endl;
      xinfo _xi;
      _xi.resize(p);
      for(size_t i=0;i<p;i++) {
@@ -191,21 +192,17 @@ void mlogitbart_ini(
    // initialize a vector to save trees
    // it is length num_trees * num_class, list by all classes first, then the index of tree in the forest
    std::vector<tree> tmat(m * k);
+   xinfo& xi = bm.getxinfo();
 
    bool separate_tree_r;
    size_t num_class_r, num_sweeps_r, num_trees_r, p_r;
    ttss >> separate_tree_r >> num_class_r >> num_sweeps_r >> num_trees_r >> p_r;
-
-   cout << "loaded data " << separate_tree_r << " " << num_class_r << " " << num_sweeps_r << " " << num_trees_r << " " << p_r << endl; 
    
    for(size_t itree = 0; itree < num_trees_r; itree ++ )
    {
       for(size_t iclass = 0; iclass < num_class_r; iclass ++ )
       {
-         cout << "load tree " << itree << " " << iclass << endl;
-         load_classification_tree(ttss, tmat[itree * num_class_r + iclass], itree, iclass);
-         cout << "loaded tree " << tmat[itree * num_class_r + iclass ] << endl;
-         cout << "-------------------" << endl;
+         load_classification_tree(ttss, tmat[itree * num_class_r + iclass], itree, iclass, xi);
       }
    }
 
@@ -260,21 +257,7 @@ void mlogitbart_ini(
    // --------------------------------------------------
    //set up BART model
    // copy the last forest of XBART as initialization of BART forest
-   cout << "tmat size " << tmat.size() << endl;
    bm.settree(tmat);
-
-cout << "size of bm " << bm.gettreesize() << endl;
-   for(size_t kk = 0; kk < tmat.size(); kk++){
-      cout << bm.gettree(kk) << endl;
-      cout << "-------------" << endl;
-   }
-
-   cout << "tree size of read in " << tmat[0].treesize() << endl;
-   cout << "theta " << bm.gettree(0).gettheta() << endl;
-   cout << "v and c " << bm.gettree(0).getv() << " " << bm.gettree(0).getc() << endl;
-
-
-
    bm.setprior(m, a0, alpha, mybeta);
    bm.setdata(p,n,ix,z,numcut, separate);
 
@@ -300,7 +283,6 @@ cout << "size of bm " << bm.gettreesize() << endl;
 
    time_t tp;
    int time1 = time(&tp), total=nd+burn;
-   xinfo& xi = bm.getxinfo();
 
    for(size_t i=0;i<total;i++) {
       if(i%printevery==0) printf("done %zu (out of %lu)\n",i,nd+burn);
