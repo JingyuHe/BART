@@ -93,8 +93,8 @@ tm3 = proc.time()
 fit.bart.shrd <- mlbart(x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
                        type='shared', power=2, base=0.95, 
                        ntree = 20, ndpost = 100, keepevery=10, nskip=20)
-tm3 = proc.time()-tm2
-cat(paste("bart runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
+tm3 = proc.time()-tm3
+cat(paste("bart runtime: ", round(tm3["elapsed"],3)," seconds"),"\n")
 phat.bart.shrd <- t(apply(fit.bart.shrd$yhat.test, c(2, 3), mean))
 yhat.bart.shrd <- apply(phat.bart.shrd, 1, which.max) - 1
 
@@ -107,15 +107,12 @@ logloss.bart.sep <- sum(mapply(function(x,y) -log(x[y]), spr.bart.sep, y_test+1,
 spr.bart.shrd <- split(phat.bart.shrd, row(phat.bart.shrd))
 logloss.bart.shrd <- sum(mapply(function(x,y) -log(x[y]), spr.bart.shrd, y_test+1, SIMPLIFY =TRUE))
 
-cat(paste("xbart logloss : ",round(logloss,3)),"\n")
-cat(paste("bart separate logloss : ", round(logloss.bart.sep,3)),"\n")
-cat(paste("bart shared logloss : ", round(logloss.bart.shrd,3)),"\n")
+results = matrix(0, 3, 3)
+results[1,] = c(round(logloss,3), round(logloss.bart.sep,3), round(logloss.bart.shrd,3))
+results[2,] = c(round(tm["elapsed"],3), round(tm2["elapsed"],3), round(tm3["elapsed"],3))
+results[3,] = c(round(mean(y_test == yhat),3), round(mean(yhat.bart.sep == y_test),3), round(mean(yhat.bart.shrd == y_test),3))
 
-cat(paste("xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
-cat(paste("bart separate runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
-cat(paste("bart shared runtime: ", round(tm3["elapsed"],3)," seconds"),"\n")
+rownames(results) = c("logloss", "runtime", "accuracy")
+colnames(results) = c("XBART", "BART separate", "BART shared")
 
-cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
-cat(paste("bart separate classification accuracy: ", round(mean(yhat.bart.sep == y_test),3)),"\n")
-cat(paste("bart shared classification accuracy: ", round(mean(yhat.bart.shrd == y_test),3)),"\n")
-
+print(results)

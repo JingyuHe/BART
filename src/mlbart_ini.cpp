@@ -203,8 +203,8 @@ void mlogitbart_ini(
       for(size_t iclass = 0; iclass < num_class_r; iclass ++ )
       {
          cout << "load tree " << itree << " " << iclass << endl;
-         load_classification_tree(ttss, tmat[itree * num_trees_r + iclass], itree, iclass);
-         cout << "loaded tree " << tmat[itree * num_trees_r + iclass ] << endl;
+         load_classification_tree(ttss, tmat[itree * num_class_r + iclass], itree, iclass);
+         cout << "loaded tree " << tmat[itree * num_class_r + iclass ] << endl;
          cout << "-------------------" << endl;
       }
    }
@@ -261,7 +261,14 @@ void mlogitbart_ini(
    //set up BART model
    // copy the last forest of XBART as initialization of BART forest
    cout << "tmat size " << tmat.size() << endl;
-   // bm.settree(tmat);
+   bm.settree(tmat);
+
+cout << "size of bm " << bm.gettreesize() << endl;
+   for(size_t kk = 0; kk < tmat.size(); kk++){
+      cout << bm.gettree(kk) << endl;
+      cout << "-------------" << endl;
+   }
+
    cout << "tree size of read in " << tmat[0].treesize() << endl;
    cout << "theta " << bm.gettree(0).gettheta() << endl;
    cout << "v and c " << bm.gettree(0).getv() << " " << bm.gettree(0).getc() << endl;
@@ -270,6 +277,7 @@ void mlogitbart_ini(
 
    bm.setprior(m, a0, alpha, mybeta);
    bm.setdata(p,n,ix,z,numcut, separate);
+
    // bm.setdart(a,b,rho,aug,dart);
    // dart iterations
    std::vector<double> ivarprb (p,0.);
@@ -299,9 +307,7 @@ void mlogitbart_ini(
       //if(i%printevery==0) printf("%22zu/%zu\r",i,total);
       // if(i==(burn/2)&&dart) bm.startdart();
       //draw bart
-      cout << "fine 1" << endl;
       bm.draw(gen);
-      cout << "fine 2" << endl;
 
    //    //draw sigma
    //    if(type==1) {

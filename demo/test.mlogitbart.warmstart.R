@@ -1,7 +1,7 @@
 library(XBART)
 library(BART)
-#seed = 10
-#set.seed(seed)
+seed = 10
+set.seed(seed)
 
 # 
 # n = 200
@@ -60,36 +60,46 @@ y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 # num_sweeps = ceiling(200/log(n)) 
 num_sweeps = 20
 burnin = 5
-num_trees = 5
+num_trees = 10
 max_depth = 2
-mtry = NULL # round((p + p_cat)/3)
+mtry = NULL 
+separate_tree = TRUE
+
+n_posterior = 2000
+thinning = 1
+
+
 #########################  parallel ####################3
 tm = proc.time()
 fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth,
                         num_cutpoints=NULL, alpha=0.95, beta=1.25, 
                         no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = p_cat,
-                        update_tau = FALSE, separate_tree = FALSE, stop_threshold = 0, hmult = 1, heps = 0)
-
-a = fit$treedraws[1]
-substring(a, 1, 500)
-
-fit.bart.warmstart <- mlbart_ini(fit$treedraws[1], x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
-                       type='shared', power=2, base=0.95, 
-                       ntree = 20, ndpost = 100, keepevery=10, nskip=20)
-
-
+                        update_tau = FALSE, separate_tree = separate_tree, stop_threshold = 0, hmult = 1, heps = 0)
 tm = proc.time()-tm
 cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 phat = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), mean)
 yhat = apply(phat,1,which.max)-1
 cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
 
+if(separate_tree){
+    type = "separate"
+}else{
+    type = "shared"
+}
+
+
+tm4 = proc.time()
+fit.bart.warmstart <- mlbart_ini(fit$treedraws[20], x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, type=type, power=2, base=0.95, ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=burnin)
+tm4 = proc.time()-tm4
+cat(paste("warmstart runtime: ", round(tm4["elapsed"],3)," seconds"),"\n")
+phat.bart.warmstart <- t(apply(fit.bart.warmstart$yhat.test, c(2, 3), mean))
+yhat.bart.warmstart <- apply(phat.bart.warmstart, 1, which.max) - 1
+
 
 tm2 = proc.time()
 fit.bart.sep <- mlbart(x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
-                   type='separate', power=2, base=0.95, 
-                   ntree = 20, ndpost = 100, keepevery=10, nskip=20)
+                   type='separate', power=2, base=0.95, ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=burnin)
 tm2 = proc.time()-tm2
 cat(paste("bart runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 phat.bart.sep <- t(apply(fit.bart.sep$yhat.test, c(2, 3), mean))
@@ -99,9 +109,9 @@ yhat.bart.sep <- apply(phat.bart.sep, 1, which.max) - 1
 tm3 = proc.time()
 fit.bart.shrd <- mlbart(x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
                        type='shared', power=2, base=0.95, 
-                       ntree = 20, ndpost = 100, keepevery=10, nskip=20)
-tm3 = proc.time()-tm2
-cat(paste("bart runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
+                       ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=burnin)
+tm3 = proc.time()-tm3
+cat(paste("bart runtime: ", round(tm3["elapsed"],3)," seconds"),"\n")
 phat.bart.shrd <- t(apply(fit.bart.shrd$yhat.test, c(2, 3), mean))
 yhat.bart.shrd <- apply(phat.bart.shrd, 1, which.max) - 1
 
@@ -114,15 +124,17 @@ logloss.bart.sep <- sum(mapply(function(x,y) -log(x[y]), spr.bart.sep, y_test+1,
 spr.bart.shrd <- split(phat.bart.shrd, row(phat.bart.shrd))
 logloss.bart.shrd <- sum(mapply(function(x,y) -log(x[y]), spr.bart.shrd, y_test+1, SIMPLIFY =TRUE))
 
-cat(paste("xbart logloss : ",round(logloss,3)),"\n")
-cat(paste("bart separate logloss : ", round(logloss.bart.sep,3)),"\n")
-cat(paste("bart shared logloss : ", round(logloss.bart.shrd,3)),"\n")
+spr.bart.warmstart <- split(phat.bart.warmstart, row(phat.bart.warmstart))
+logloss.bart.warmstart <- sum(mapply(function(x,y) -log(x[y]), spr.bart.warmstart, y_test+1, SIMPLIFY =TRUE))
 
-cat(paste("xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
-cat(paste("bart separate runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
-cat(paste("bart shared runtime: ", round(tm3["elapsed"],3)," seconds"),"\n")
 
-cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
-cat(paste("bart separate classification accuracy: ", round(mean(yhat.bart.sep == y_test),3)),"\n")
-cat(paste("bart shared classification accuracy: ", round(mean(yhat.bart.shrd == y_test),3)),"\n")
+results = matrix(0, 3, 4)
+results[1,] = c(round(logloss,3), round(logloss.bart.sep,3), round(logloss.bart.shrd,3), round(logloss.bart.warmstart, 3))
+results[2,] = c(round(tm["elapsed"],3), round(tm2["elapsed"],3), round(tm3["elapsed"],3), round(tm4["elapsed"],3))
+results[3,] = c(round(mean(y_test == yhat),3), round(mean(yhat.bart.sep == y_test),3), round(mean(yhat.bart.shrd == y_test),3), round(mean(yhat.bart.warmstart == y_test),3))
+
+rownames(results) = c("logloss", "runtime", "accuracy")
+colnames(results) = c("XBART", "BART separate", "BART shared", "Warmstart")
+
+print(results)
 

@@ -75,6 +75,7 @@ public:
    std::vector<size_t>& getnv() {return nv;}
    std::vector<double>& getpv() {return pv;}
    double gettheta() {return theta;}
+   size_t gettreesize() {return t.size();}
    //------------------------------
    //public methods
    void birth(size_t i, size_t nid,size_t v, size_t c, double ml, double mr)
