@@ -215,7 +215,7 @@ double drawnodelambda(size_t n, double sy, double c, double d, rn& gen)
         size_t num_try = 0;
         double u, v, x;
 
-        if ((psi == 0)&&(eta < 0)&&(psi > 0)) return 1/gen.gamma(-eta, chi/2); // if psi == 0, its a inverse gamma distribution invGamma(-eta, chi/2)
+        if ((psi == 0)&&(eta < 0)&&(chi > 0)) return 1/gen.gamma(-eta, chi/2); // if psi == 0, its a inverse gamma distribution invGamma(-eta, chi/2)
 
         if ((chi == 0)&&(eta > 0)&&(psi > 0)) return gen.gamma(eta, psi/2); // if chi == 0, it's Gamma(eta, psi/2)
 

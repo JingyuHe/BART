@@ -427,7 +427,7 @@ Copyright (C) 2012 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
-ac_pwd='/Users/jingyuhe/BART'
+ac_pwd='/Users/maggie/Dropbox (ASU)/BART'
 srcdir='.'
 test -n "$AWK" || AWK=awk
 # The default lists apply if the user does not specify any file.
@@ -588,9 +588,9 @@ S["OBJEXT"]="o"
 S["EXEEXT"]=""
 S["ac_ct_CXX"]=""
 S["CPPFLAGS"]=""
-S["LDFLAGS"]="-L/opt/homebrew/opt/gettext/lib -L/opt/homebrew/opt/readline/lib -L/opt/homebrew/opt/xz/lib -L/opt/homebrew/lib"
-S["CXXFLAGS"]="-g -O2"
-S["CXX"]="clang++ -std=gnu++11"
+S["LDFLAGS"]="-L/usr/local/opt/llvm@9/lib"
+S["CXXFLAGS"]="-Wall -g -O2"
+S["CXX"]="/usr/local/opt/llvm@9/bin/clang++ -std=gnu++11"
 S["target_alias"]=""
 S["host_alias"]=""
 S["build_alias"]=""
