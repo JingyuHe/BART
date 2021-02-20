@@ -309,6 +309,8 @@ std::ostream& operator<<(std::ostream& os, const tree& t)
 {
    tree::cnpv nds;
    t.getnodes(nds);
+   size_t theta_size = 1;
+   os << theta_size << std::endl;
    os << nds.size() << std::endl;
    for(size_t i=0;i<nds.size();i++) {
       os << nds[i]->nid() << " ";
