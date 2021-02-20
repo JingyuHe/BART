@@ -254,11 +254,11 @@ double drawnodelambda(size_t n, double sy, double c, double d, rn& gen)
                 if (u * h <= exp( (eta - 1)*log(x) - beta * (x + 1/x) / 2 ) ) { return x;} // uh <= g(x, eta, chi , psi)
                 else { num_try += 1; }
             }
-            // cout << "Warning: Sampling lambda exceeds 1000 iterations in rejection methhod for non-T-concave part" << endl;
-            // cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
-            // cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
-            // cout << "k1 = " << k1 << "; k2 = " << k2 << "; k3 = " << k3 << endl;
-            // cout << "A1 = " << A1 << "; A2 = " << A2 << "; A3 = " << A3 << "; x = " << x << endl;
+            cout << "Warning: Sampling lambda exceeds 1000 iterations in rejection methhod for non-T-concave part" << endl;
+            cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
+            cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
+            cout << "k1 = " << k1 << "; k2 = " << k2 << "; k3 = " << k3 << endl;
+            cout << "A1 = " << A1 << "; A2 = " << A2 << "; A3 = " << A3 << "; x = " << x << endl;
             return x;
         }
         
@@ -276,10 +276,10 @@ double drawnodelambda(size_t n, double sy, double c, double d, rn& gen)
                 if (pow(v, 2) <= exp( (eta-1)*log(x) - beta * (x + 1/x) /2 )) { return x;}
                 else { num_try += 1; } 
             }
-            // cout << "Warning: Sampling lambda exceeds 1000 iterations in ratio-of-uniforms without mode shift" << endl;
-            // cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
-            // cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
-            // cout << "m = " << m << "; xp = " << xp << "; vp = " << vp << "; up = " << up << "; x = " << x << endl;
+            cout << "Warning: Sampling lambda exceeds 1000 iterations in ratio-of-uniforms without mode shift" << endl;
+            cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
+            cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
+            cout << "m = " << m << "; xp = " << xp << "; vp = " << vp << "; up = " << up << "; x = " << x << endl;
             return x;
         }
 
@@ -307,11 +307,11 @@ double drawnodelambda(size_t n, double sy, double c, double d, rn& gen)
             if (2*log(u1) <= lgigkernal(u2/u1, eta, chi, psi)) {return u2 / u1; }
             else {num_try += 1;}
         }
-        // cout << "Warning: Sampling lambda exceeds 1000 iterations." << endl;
-        // cout << "ib = " << ib << "; bx = " << bx << "; id = " << id << "; dx = " << dx << endl;
-        // cout << "u1 = " << u1 << "; u2 = " << u2 << "; u2/u1 = " << u2/u1 << endl;
-        // cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
-        // cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
+        cout << "Warning: Sampling lambda exceeds 1000 iterations." << endl;
+        cout << "ib = " << ib << "; bx = " << bx << "; id = " << id << "; dx = " << dx << endl;
+        cout << "u1 = " << u1 << "; u2 = " << u2 << "; u2/u1 = " << u2/u1 << endl;
+        cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
+        cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
         return u2/u1; 
     }
     else { // draw from gig(c+r, 0, 2*(d+s)) or equivalently gamma(c+r, d+s)
