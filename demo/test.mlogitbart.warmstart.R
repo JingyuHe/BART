@@ -10,7 +10,7 @@ n = 1000
 nt = 500
 p = 6
 p_cat = 0
-k = 6
+k = 3
 lam = matrix(0,n,k)
 lamt = matrix(0,nt,k)
 
@@ -35,15 +35,15 @@ X_test = cbind(X_test, matrix(rbinom(nt*p_cat, 1, 0.5), nrow = nt))
 lam[,1] = abs(3*X_train[,1] - X_train[,2])
 lam[,2] = 2
 lam[,3] = 3*X_train[,3]^2
-lam[,4] = 4*(X_train[, 4] * X_train[,5])
-lam[,5] = 2*(X_train[,5] + X_train[,6])
-lam[,6] = 2*(X_train[,1] + X_train[,3] - X_train[,5])
+# lam[,4] = 4*(X_train[, 4] * X_train[,5])
+# lam[,5] = 2*(X_train[,5] + X_train[,6])
+# lam[,6] = 2*(X_train[,1] + X_train[,3] - X_train[,5])
 lamt[,1] = abs(3*X_test[,1] - X_test[,2])
 lamt[,2] = 2
 lamt[,3] = 3*X_test[,3]^2
-lamt[,4] = 4*(X_test[,4]*X_test[,5])
-lamt[,5] = 2*(X_test[,5] + X_test[,6])
-lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
+# lamt[,4] = 4*(X_test[,4]*X_test[,5])
+# lamt[,5] = 2*(X_test[,5] + X_test[,6])
+# lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
 
 # vary s to make the problem harder s < 1 or easier s > 2
 s = 15

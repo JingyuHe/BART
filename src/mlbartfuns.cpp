@@ -298,21 +298,27 @@ double drawnodelambda(size_t n, double sy, double c, double d, rn& gen)
             u1 = gen.uniform()*ib;
             u2 = gen.uniform()*id;
             if (isinf(u1) | isinf(u2) | isnan(u1) | isnan(u2)) {
-                cout << "u1 = " << u1 << "; u2 = " << u2 << endl;
-                cout << "bx = " << ib << "; ib = " << ib << "; dx = " << dx << "; id = " << id << endl;
-                cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
-                cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
+               //  cout << "u1 = " << u1 << "; u2 = " << u2 << endl;
+               //  cout << "bx = " << ib << "; ib = " << ib << "; dx = " << dx << "; id = " << id << endl;
+               //  cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
+               //  cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
                 exit(1);
                 }
             if (2*log(u1) <= lgigkernal(u2/u1, eta, chi, psi)) {return u2 / u1; }
             else {num_try += 1;}
         }
-        // cout << "Warning: Sampling lambda exceeds 1000 iterations." << endl;
-        // cout << "ib = " << ib << "; bx = " << bx << "; id = " << id << "; dx = " << dx << endl;
-        // cout << "u1 = " << u1 << "; u2 = " << u2 << "; u2/u1 = " << u2/u1 << endl;
-        // cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
-        // cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
-        return u2/u1; 
+   
+      // When psi is extremely small and the sampling can not converge, it will eventually cause overflows
+      // So we try to consider psi as the case psi == 0 
+      if (eta < 0) {return 1/gen.gamma(-eta, chi/2);}
+      else {
+         //   cout << "Warning: Sampling lambda exceeds 1000 iterations." << endl;
+         //   cout << "ib = " << ib << "; bx = " << bx << "; id = " << id << "; dx = " << dx << endl;
+         //   cout << "u1 = " << u1 << "; u2 = " << u2 << "; u2/u1 = " << u2/u1 << endl;
+         //   cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
+         //   cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
+           return u2/u1; 
+      }
     }
     else { // draw from gig(c+r, 0, 2*(d+s)) or equivalently gamma(c+r, d+s)
         return gen.gamma(c+n, d+sy);
