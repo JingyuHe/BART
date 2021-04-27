@@ -348,7 +348,8 @@ double gignorm(double eta, double chi, double psi)
          try{
             bessel_k = cyl_bessel_k(eta, sqrt(chi*psi));
          } catch (std::exception const& e) {
-            cout << "eta = " << eta << ", chi = " << chi << ", psi = " << psi << endl;
+            // cout << "eta = " << eta << ", chi = " << chi << ", psi = " << psi << endl;
+            // "set bessel-k = 1 when boost method fails" 
             bessel_k = 1;
          }
         ret = exp(log(2*bessel_k) - (eta / 2) * log(psi / chi));
