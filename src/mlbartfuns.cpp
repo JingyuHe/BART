@@ -345,6 +345,7 @@ double gignorm(double eta, double chi, double psi)
         ret = exp(lgamma(-eta) - eta * log(2 / chi));
     }else if ((chi>0)&&(psi>0)){
          double bessel_k; 
+         cout << "get bessel" << endl;
          try{
             bessel_k = cyl_bessel_k(eta, sqrt(chi*psi));
          } catch (const char* msg) {
@@ -352,6 +353,7 @@ double gignorm(double eta, double chi, double psi)
             cout << "eta = " << eta << ", chi = " << chi << ", psi = " << psi << endl;
             bessel_k = 1;
          }
+         cout << "finish bessel" << endl;
         ret = exp(log(2*bessel_k) - (eta / 2) * log(psi / chi));
     }
     return ret;
