@@ -347,8 +347,7 @@ double gignorm(double eta, double chi, double psi)
          double bessel_k; 
          try{
             bessel_k = cyl_bessel_k(eta, sqrt(chi*psi));
-         } catch (std::exception const& e) {
-            std::cerr << e << endl;
+         } catch (std::exception const& e) 
             cout << "eta = " << eta << ", chi = " << chi << ", psi = " << psi << endl;
             bessel_k = 1;
          }
