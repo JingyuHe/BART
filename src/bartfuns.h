@@ -66,7 +66,4 @@ void draw_s(std::vector<size_t>& nv, std::vector<double>& lpv, double& theta, rn
 //draw Dirichlet sparsity parameter from posterior using grid
 void draw_theta0(bool const_theta, double& theta, std::vector<double>& lpv,
 		 double a, double b, double rho, rn& gen);
-//--------------------------------------------------
-//load regression tree for warm start
-void load_regression_tree(std::istream& is, tree &t, xinfo& xi);
 #endif
