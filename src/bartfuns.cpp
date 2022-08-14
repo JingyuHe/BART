@@ -438,12 +438,12 @@ void load_regression_tree(std::istream& is, tree &t, xinfo& xi)
    t.tonull();
    size_t theta_size;
    is >> theta_size;
-
+cout << "fine 1 " << theta_size << " " << nn << endl;
    double temp_c = 0.0;
    //read number of nodes----------
    is >> nn;
    if(!is) {
-      // cout << ">> error: unable to read number of nodes" << endl; 
+      cout << ">> error: unable to read number of nodes" << endl; 
       return;
    }
 
@@ -471,7 +471,7 @@ void load_regression_tree(std::istream& is, tree &t, xinfo& xi)
 
       is >> nv[i].theta;
       if(!is) {
-         // cout << ">> error: unable to read node info, on node  " << i+1 << endl;
+         cout << ">> error: unable to read node info, on node  " << i+1 << endl;
          return;
       }
    }
