@@ -29,14 +29,6 @@ public:
    double *x; // jth var of ith obs is *(x + p*i+j)
    double *y; // ith y is *(y+i) or y[i]
 };
-class mlogitdinfo: public dinfo {
-   public:
-   mlogitdinfo(): dinfo() {k=0;phi=0;f=0;ik=0;}
-   size_t k; // number of class / categories
-   double *phi;
-   double *f; // allfit
-   size_t ik; // current class
-};
 //prior and mcmc
 class pinfo
 {
@@ -55,6 +47,15 @@ public:
              ", " << mybeta << ", " << tau << std::endl;
    }
 };
+// for multivariate classification logit model
+class mlogitdinfo: public dinfo {
+   public:
+   mlogitdinfo(): dinfo() {k=0;phi=0;f=0;ik=0;}
+   size_t k; // number of class / categories
+   double *phi;
+   double *f; // allfit
+   size_t ik; // current class
+};
 class mlogitpinfo: public pinfo {
 public:
    mlogitpinfo(): pinfo(), a0(3.5/sqrt(2)) {
@@ -68,5 +69,4 @@ public:
    double d;
    double z3;
 };
-
 #endif
