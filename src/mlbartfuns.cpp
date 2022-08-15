@@ -29,8 +29,8 @@ void load_classification_tree(std::istream& is, tree &t, size_t itree, size_t ic
       // cout << ">> error: unable to read number of nodes" << endl; 
       return;
    }
-
-   //read in vector of node information----------
+   cout << "Tree " << theta_size << " " << nn << endl;
+   // read in vector of node information----------
    std::vector<node_info> nv(nn);
    for(size_t i=0;i!=nn;i++) 
    {
@@ -39,7 +39,8 @@ void load_classification_tree(std::istream& is, tree &t, size_t itree, size_t ic
       // the raw output of XBART is raw value of cutpoints
       // BART define cutpoint by its index in the xi matrix
       is >> nv[i].id >> nv[i].v >> temp_c; // >> nv[i].c;
-
+      // is >> nv[i].v >> temp_c;
+      cout << "loaded " << nv[i].id << " " << nv[i].v << " " << temp_c << endl;
       // search index in xi for the cutpoint
       temp_index = 0;
 

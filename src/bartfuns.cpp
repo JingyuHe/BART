@@ -438,7 +438,6 @@ void load_regression_tree(std::istream& is, tree &t, xinfo& xi)
    t.tonull();
    size_t theta_size;
    is >> theta_size;
-cout << "fine 1 " << theta_size << " " << nn << endl;
    double temp_c = 0.0;
    //read number of nodes----------
    is >> nn;
@@ -446,6 +445,7 @@ cout << "fine 1 " << theta_size << " " << nn << endl;
       cout << ">> error: unable to read number of nodes" << endl; 
       return;
    }
+cout << "A tree :" << theta_size << " " << nn << endl;
 
    //read in vector of node information----------
    std::vector<node_info> nv(nn);
@@ -454,7 +454,8 @@ cout << "fine 1 " << theta_size << " " << nn << endl;
       // the raw output of XBART is raw value of cutpoints
       // BART define cutpoint by its index in the xi matrix
       is >> nv[i].id >> nv[i].v >> temp_c; // >> nv[i].c;
-
+      cout << "loaded " << nv[i].id << " " << nv[i].v << " " << temp_c << endl;
+      // is >> nv[i].v >> temp_c;
       // search index in xi for the cutpoint
       temp_index = 0;
 
@@ -464,10 +465,17 @@ cout << "fine 1 " << theta_size << " " << nn << endl;
 
       if(temp_index >= xi[0].size()){
          // avoid overflow
+         cout << "over flow!" << endl;
          temp_index = xi[0].size() - 1;
       }
 
       nv[i].c = temp_index;
+
+      if(nv[i].v == 0 && temp_c == 0)
+      {
+         // the case of leaf node
+         nv[i].c = 0;
+      }
 
       is >> nv[i].theta;
       if(!is) {

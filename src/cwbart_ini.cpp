@@ -164,69 +164,75 @@ cout << "mm " << mm << " pp " << pp << endl;
    {
       load_regression_tree(ttss, tmat[j], xi);
    }
-   
-// #else
 
-// #define TRDRAW(a, b) trdraw[a][b]
-// #define TEDRAW(a, b) tedraw[a][b]
+   cout << "---------------------" << endl;
+   cout << "loaded trees " << endl;
+   for (size_t j = 0; j < mm;j++){
+      cout << "-----" << endl;
+      cout << tmat[j] << endl;
+   }
+   // #else
 
-// void cwbart(
-//    size_t n,            //number of observations in training data
-//    size_t p,		//dimension of x
-//    size_t np,		//number of observations in test data
-//    double* ix,		//x, train,  pxn (transposed so rows are contiguous in memory)
-//    double* iy,		//y, train,  nx1
-//    double* ixp,		//x, test, pxnp (transposed so rows are contiguous in memory)
-//    size_t m,		//number of trees
-//    int* numcut,		//number of cut points
-//    size_t nd,		//number of kept draws (except for thinnning ..)
-//    size_t burn,		//number of burn-in draws skipped
-//    double mybeta,
-//    double alpha,
-//    double tau,
-//    double nu,
-//    double lambda,
-//    double sigma,
-//    double* iw,
-//    bool dart,
-//    double theta,
-//    double omega,
-//    int *grp,
-//    double a,
-//    double b,
-//    double rho,
-//    bool aug,
-//    size_t nkeeptrain,
-//    size_t nkeeptest,
-//    size_t nkeeptestme,
-//    size_t nkeeptreedraws,
-//    size_t printevery,
-// //   int treesaslists,
-//    unsigned int n1, // additional parameters needed to call from C++
-//    unsigned int n2,
-//    double* trmean,
-//    double* temean,
-//    double* sdraw,
-//    double* _trdraw,
-//    double* _tedraw
-// )
-// {
+   // #define TRDRAW(a, b) trdraw[a][b]
+   // #define TEDRAW(a, b) tedraw[a][b]
 
-//    //return data structures (using C++)
-//    std::vector<double*> trdraw(nkeeptrain);
-//    std::vector<double*> tedraw(nkeeptest);
+   // void cwbart(
+   //    size_t n,            //number of observations in training data
+   //    size_t p,		//dimension of x
+   //    size_t np,		//number of observations in test data
+   //    double* ix,		//x, train,  pxn (transposed so rows are contiguous in memory)
+   //    double* iy,		//y, train,  nx1
+   //    double* ixp,		//x, test, pxnp (transposed so rows are contiguous in memory)
+   //    size_t m,		//number of trees
+   //    int* numcut,		//number of cut points
+   //    size_t nd,		//number of kept draws (except for thinnning ..)
+   //    size_t burn,		//number of burn-in draws skipped
+   //    double mybeta,
+   //    double alpha,
+   //    double tau,
+   //    double nu,
+   //    double lambda,
+   //    double sigma,
+   //    double* iw,
+   //    bool dart,
+   //    double theta,
+   //    double omega,
+   //    int *grp,
+   //    double a,
+   //    double b,
+   //    double rho,
+   //    bool aug,
+   //    size_t nkeeptrain,
+   //    size_t nkeeptest,
+   //    size_t nkeeptestme,
+   //    size_t nkeeptreedraws,
+   //    size_t printevery,
+   // //   int treesaslists,
+   //    unsigned int n1, // additional parameters needed to call from C++
+   //    unsigned int n2,
+   //    double* trmean,
+   //    double* temean,
+   //    double* sdraw,
+   //    double* _trdraw,
+   //    double* _tedraw
+   // )
+   // {
 
-//    for(size_t i=0; i<nkeeptrain; ++i) trdraw[i]=&_trdraw[i*n];
-//    for(size_t i=0; i<nkeeptest; ++i) tedraw[i]=&_tedraw[i*np];
+   //    //return data structures (using C++)
+   //    std::vector<double*> trdraw(nkeeptrain);
+   //    std::vector<double*> tedraw(nkeeptest);
 
-//    std::vector< std::vector<size_t> > varcnt;
-//    std::vector< std::vector<double> > varprb;
+   //    for(size_t i=0; i<nkeeptrain; ++i) trdraw[i]=&_trdraw[i*n];
+   //    for(size_t i=0; i<nkeeptest; ++i) tedraw[i]=&_tedraw[i*np];
 
-//    //random number generation
-//    arn gen(n1, n2); 
+   //    std::vector< std::vector<size_t> > varcnt;
+   //    std::vector< std::vector<double> > varprb;
 
-//    heterbart bm(m);
-// #endif
+   //    //random number generation
+   //    arn gen(n1, n2);
+
+   //    heterbart bm(m);
+   // #endif
 
    for(size_t i=0;i<n;i++) trmean[i]=0.0;
    for(size_t i=0;i<np;i++) temean[i]=0.0;
