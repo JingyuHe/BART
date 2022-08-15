@@ -18,7 +18,86 @@
  */
 
 #include "bartfuns.h"
+//--------------------------------------------------
+// load regression tree from output of XBART for warm start
+void load_regression_tree(std::istream& is, tree &t, xinfo& xi)
+{  
+   size_t tid,pid; //tid: id of current node, pid: parent's id
+   std::map<size_t,tree::tree_p> pts;  //pointers to nodes indexed by node id
+   size_t nn; //number of nodes
+   double temp = 0.0;
+   size_t temp_index = 0;
+   t.tonull();
+   size_t theta_size;
+   is >> theta_size;
 
+   double temp_c = 0.0;
+   //read number of nodes----------
+   is >> nn;
+   if(!is) {
+      // cout << ">> error: unable to read number of nodes" << endl; 
+      return;
+   }
+
+   //read in vector of node information----------
+   std::vector<node_info> nv(nn);
+   for(size_t i=0;i!=nn;i++) 
+   {
+      // the raw output of XBART is raw value of cutpoints
+      // BART define cutpoint by its index in the xi matrix
+      is >> nv[i].id >> nv[i].v >> temp_c; // >> nv[i].c;
+
+      // search index in xi for the cutpoint
+      temp_index = 0;
+
+      while(xi[nv[i].v][temp_index] <= temp_c){
+         temp_index ++ ;
+      }
+
+      if(temp_index >= xi[0].size()){
+         // avoid overflow
+         temp_index = xi[0].size() - 1;
+      }
+
+      nv[i].c = temp_index;
+
+      if(nv[i].v == 0 && temp_c == 0)
+      {
+         // this is a leaf node
+         nv[i].c = 0;
+      }
+
+      is >> nv[i].theta;
+      if(!is) {
+         // cout << ">> error: unable to read node info, on node  " << i+1 << endl;
+         return;
+      }
+   }
+   //first node has to be the top one
+   pts[1] = &(t); //careful! this is not the first pts, it is pointer of id 1.
+   t.setv(nv[0].v); 
+   t.setc(nv[0].c); 
+   t.settheta(nv[0].theta);
+   t.setp(0);
+
+   //now loop through the rest of the nodes knowing parent is already there.
+   for(size_t i=1;i!=nv.size();i++) 
+   {
+      tree::tree_p np = new tree;
+      np->setv(nv[i].v); np->setc(nv[i].c); np->settheta(nv[i].theta);
+      tid = nv[i].id;
+      pts[tid] = np;
+      pid = tid/2;
+      // set pointers
+      if(tid % 2 == 0) { //left child has even id
+         pts[pid]->setl(np);
+      } else {
+         pts[pid]->setr(np);
+      }
+      np->setp(pts[pid]);
+   }
+   return;
+}
 //--------------------------------------------------
 //make xinfo = cutpoints
 void makexinfo(size_t p, size_t n, double *x, xinfo& xi, size_t numcut)
@@ -406,105 +485,3 @@ void draw_theta0(bool const_theta, double& theta, std::vector<double>& lpv,
   } 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//--------------------------------------------------
-// load regression tree from output of XBART for warm start
-void load_regression_tree(std::istream& is, tree &t, xinfo& xi)
-{  
-   size_t tid,pid; //tid: id of current node, pid: parent's id
-   std::map<size_t,tree::tree_p> pts;  //pointers to nodes indexed by node id
-   size_t nn; //number of nodes
-   double temp = 0.0;
-   size_t temp_index = 0;
-   t.tonull();
-   size_t theta_size;
-   is >> theta_size;
-   double temp_c = 0.0;
-   //read number of nodes----------
-   is >> nn;
-   if(!is) {
-      cout << ">> error: unable to read number of nodes" << endl; 
-      return;
-   }
-cout << "A tree :" << theta_size << " " << nn << endl;
-
-   //read in vector of node information----------
-   std::vector<node_info> nv(nn);
-   for(size_t i=0;i!=nn;i++) 
-   {
-      // the raw output of XBART is raw value of cutpoints
-      // BART define cutpoint by its index in the xi matrix
-      is >> nv[i].id >> nv[i].v >> temp_c; // >> nv[i].c;
-      cout << "loaded " << nv[i].id << " " << nv[i].v << " " << temp_c << endl;
-      // is >> nv[i].v >> temp_c;
-      // search index in xi for the cutpoint
-      temp_index = 0;
-
-      while(xi[nv[i].v][temp_index] <= temp_c){
-         temp_index ++ ;
-      }
-
-      if(temp_index >= xi[0].size()){
-         // avoid overflow
-         cout << "over flow!" << endl;
-         temp_index = xi[0].size() - 1;
-      }
-
-      nv[i].c = temp_index;
-
-      if(nv[i].v == 0 && temp_c == 0)
-      {
-         // the case of leaf node
-         nv[i].c = 0;
-      }
-
-      is >> nv[i].theta;
-      if(!is) {
-         cout << ">> error: unable to read node info, on node  " << i+1 << endl;
-         return;
-      }
-   }
-   //first node has to be the top one
-   pts[1] = &(t); //careful! this is not the first pts, it is pointer of id 1.
-   t.setv(nv[0].v); 
-   t.setc(nv[0].c); 
-   t.settheta(nv[0].theta);
-   t.setp(0);
-
-   //now loop through the rest of the nodes knowing parent is already there.
-   for(size_t i=1;i!=nv.size();i++) 
-   {
-      tree::tree_p np = new tree;
-      np->setv(nv[i].v); np->setc(nv[i].c); np->settheta(nv[i].theta);
-      tid = nv[i].id;
-      pts[tid] = np;
-      pid = tid/2;
-      // set pointers
-      if(tid % 2 == 0) { //left child has even id
-         pts[pid]->setl(np);
-      } else {
-         pts[pid]->setr(np);
-      }
-      np->setp(pts[pid]);
-   }
-   return;
-}

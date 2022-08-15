@@ -1,7 +1,7 @@
-\name{gbart}
-\title{Generalized BART for continuous and binary outcomes}
-\alias{gbart}
-\alias{mc.gbart}
+\name{gbmm}
+\title{Generalized BART Mixed Model for continuous and binary outcomes}
+\alias{gbmm}
+\alias{mc.gbmm}
 \description{
 BART is a Bayesian \dQuote{sum-of-trees} model.\cr
 For a numeric response \eqn{y}, we have
@@ -17,46 +17,44 @@ each tree is constrained by a prior to be a weak learner
 so that it contributes a small amount to the overall fit.
 }
 \usage{
-gbart(
+gbmm(
       x.train, y.train,
       x.test=matrix(0,0,0), type='wbart',
+      u.train=NULL, B=NULL,
       ntype=as.integer(
-          factor(type, levels=c('wbart', 'pbart', 'lbart'))),
+          factor(type, levels=c('wbart', 'pbart'))),
       sparse=FALSE, theta=0, omega=1,
       a=0.5, b=1, augment=FALSE, rho=NULL,
       xinfo=matrix(0,0,0), usequants=FALSE,
       rm.const=TRUE,
       sigest=NA, sigdf=3, sigquant=0.90,
       k=2, power=2, base=0.95,
-      %sigmaf=NA,
-      lambda=NA, tau.num=c(NA, 3, 6)[ntype], %tau.interval=0.9973,
-      offset=NULL, w=rep(1, length(y.train)),
+      lambda=NA, tau.num=c(NA, 3, 6)[ntype], 
+      offset=NULL, 
       ntree=c(200L, 50L, 50L)[ntype], numcut=100L,
-      %ntree=200L, numcut=100L,
       ndpost=1000L, nskip=100L, %keepevery=1L,
       keepevery=c(1L, 10L, 10L)[ntype],
       printevery=100L, transposed=FALSE,
       hostname=FALSE,
-      mc.cores = 1L, ## mc.gbart only
-      nice = 19L,    ## mc.gbart only
-      seed = 99L     ## mc.gbart only
+      mc.cores = 1L, ## mc.gbmm only
+      nice = 19L,    ## mc.gbmm only
+      seed = 99L     ## mc.gbmm only
 )
 
-mc.gbart(
+mc.gbmm(
          x.train, y.train,
          x.test=matrix(0,0,0), type='wbart',
+         u.train=NULL, B=NULL,
          ntype=as.integer(
-             factor(type, levels=c('wbart', 'pbart', 'lbart'))),
+             factor(type, levels=c('wbart', 'pbart'))),
          sparse=FALSE, theta=0, omega=1,
          a=0.5, b=1, augment=FALSE, rho=NULL,
          xinfo=matrix(0,0,0), usequants=FALSE,
          rm.const=TRUE,
          sigest=NA, sigdf=3, sigquant=0.90,
          k=2, power=2, base=0.95,
-         %sigmaf=NA,
-         lambda=NA, tau.num=c(NA, 3, 6)[ntype], %tau.interval=0.9973,
-         offset=NULL, w=rep(1, length(y.train)),
-         %ntree=200L, numcut=100L,
+         lambda=NA, tau.num=c(NA, 3, 6)[ntype], 
+         offset=NULL, 
          ntree=c(200L, 50L, 50L)[ntype], numcut=100L,
          ndpost=1000L, nskip=100L, %keepevery=1L,
          keepevery=c(1L, 10L, 10L)[ntype],
@@ -75,7 +73,7 @@ mc.gbart(
     variable is a factor in a data frame, it is replaced with dummies.
     Note that \eqn{q} dummies are created if \eqn{q>2} and one dummy
     created if \eqn{q=2} where \eqn{q} is the number of levels of the
-    factor.  \code{gbart} will generate draws of \eqn{f(x)} for each
+    factor.  \code{gbmm} will generate draws of \eqn{f(x)} for each
     \eqn{x} which is a row of \code{x.train}.  }
 
    \item{y.train}{
@@ -88,16 +86,23 @@ argument \code{type} to specify a logit BART model.
 
    \item{x.test}{ Explanatory variables for test (out of sample)
    data. Should have same structure as \code{x.train}.
-   \code{gbart} will generate draws of \eqn{f(x)} for each \eqn{x} which
+   \code{gbmm} will generate draws of \eqn{f(x)} for each \eqn{x} which
    is a row of \code{x.test}.  }
+ 
+   \item{u.train}{
+   Integer indices specifying the random effects.
+   }
 
+   \item{B}{
+     The prior for the standard deviation of the random effects
+     is \eqn{U(0, B)}.
+   }
+   
  \item{type}{ You can use this argument to specify the type of fit.
-   \code{'wbart'} for continuous BART, \code{'pbart'} for probit BART or
-   \code{'lbart'} for logit BART. }
+   \code{'wbart'} for continuous BART or \code{'pbart'} for probit BART. }
 
  \item{ntype}{ The integer equivalent of \code{type} where
-  \code{'wbart'} is 1, \code{'pbart'} is 2 and
-  \code{'lbart'} is 3.}
+  \code{'wbart'} is 1 and \code{'pbart'} is 2.}
 
    \item{sparse}{Whether to perform variable selection based on a
      sparse Dirichlet prior rather than simply uniform; see Linero 2016.}
@@ -181,9 +186,6 @@ argument \code{type} to specify a logit BART model.
    BART, the centering is \eqn{P(Y=1 | x) = F(f(x) + offset)} where
    \code{offset} defaults to \code{F^{-1}(mean(y.train))}.  You can use
    the \code{offset} parameter to over-ride these defaults.}
-   
-   \item{w}{ Vector of weights which multiply the standard deviation.
-   Not used if \eqn{y} is binary.  }
 
    \item{ntree}{
    The number of trees in the sum.
@@ -221,9 +223,9 @@ argument \code{type} to specify a logit BART model.
    }
 
    \item{transposed}{
-   When running \code{gbart} in parallel, it is more memory-efficient
+   When running \code{gbmm} in parallel, it is more memory-efficient
    to transpose \code{x.train} and \code{x.test}, if any, prior to
-   calling \code{mc.gbart}.
+   calling \code{mc.gbmm}.
  }
 
  \item{hostname}{
@@ -258,13 +260,13 @@ argument \code{type} to specify a logit BART model.
    particular draw.  The \eqn{x} is either a row from the training data,
    \code{x.train} or the test data, \code{x.test}.
 
-   For \code{x.train}/{x.test} with missing data elements, \code{gbart}
+   For \code{x.train}/{x.test} with missing data elements, \code{gbmm}
    will singly impute them with hot decking. For one or more missing
    covariates, record-level hot-decking imputation \cite{deWaPann11} is
    employed that is biased towards the null, i.e., nonmissing values
    from another record are randomly selected regardless of the
-   outcome. Since \code{mc.gbart} runs multiple \code{gbart} threads in
-   parallel, \code{mc.gbart} performs multiple imputation with hot
+   outcome. Since \code{mc.gbmm} runs multiple \code{gbmm} threads in
+   parallel, \code{mc.gbmm} performs multiple imputation with hot
    decking, i.e., a separate imputation for each thread.  This
    record-level hot-decking imputation is biased towards the null, i.e.,
    nonmissing values from another record are randomly selected
@@ -280,7 +282,7 @@ argument \code{type} to specify a logit BART model.
    %% The second plot has \eqn{y} on the horizontal axis and posterior intervals for
    %% the corresponding \eqn{f(x)} on the vertical axis.
 
-   \code{gbart} returns an object of type \code{gbart} which is
+   \code{gbmm} returns an object of type \code{gbmm} which is
    essentially a list. % assigned class \sQuote{bart}.
    In the numeric \eqn{y} case, the list has components:
 
@@ -325,25 +327,16 @@ Friedman, J.H. (1991)
    Multivariate adaptive regression splines.
    \emph{The Annals of Statistics}, \bold{19}, 1--67.
 
-Gramacy, RB and Polson, NG (2012)
-   Simulation-based regularized logistic regression.
-   \emph{Bayesian Analysis}, \bold{7}, 567--590.
-
-Holmes, C and Held, L (2006)
-   Bayesian auxiliary variable models for binary and multinomial regression.
-   \emph{Bayesian Analysis}, \bold{1}, 145--68.
-
-Linero, A.R. (2016)
-  Bayesian regression trees for high dimensional prediction and variable
-  selection. \emph{JASA},
-  \url{http://dx.doi.org/10.1080/01621459.2016.1264957}  
+Linero, A.R. (2018)
+  Bayesian regression trees for high dimensional prediction and variable selection.
+  \emph{JASA}, \bold{113(522)}, 626--636.
 }
 \author{
 Robert McCulloch: \email{robert.e.mcculloch@gmail.com},\cr
 Rodney Sparapani: \email{rsparapa@mcw.edu}.
 }
 \seealso{
-\code{\link{pbart}}
+\code{\link{wbart}}, \code{\link{pbart}}
 }
 \examples{
 ##simulate data (example from Friedman MARS paper)

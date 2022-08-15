@@ -65,11 +65,8 @@ public:
        this->theta=_theta;
      }
 }
-
-   // intialize bart class with given vector of trees, for warm start
-   void settree(std::vector<tree> &tree_copy); 
-
-
+   // initialize bart object from a vector of trees 
+   void settree(std::vector< tree >& tree_copy);
    void startdart() {this->dartOn=!(this->dartOn);}
    void settau(double tau) {pi.tau=tau;}
    tree& gettree(size_t i ) { return t[i];}
@@ -78,6 +75,7 @@ public:
    std::vector<size_t>& getnv() {return nv;}
    std::vector<double>& getpv() {return pv;}
    double gettheta() {return theta;}
+   size_t gettreesize() {return t.size();}
    //------------------------------
    //public methods
    void birth(size_t i, size_t nid,size_t v, size_t c, double ml, double mr)

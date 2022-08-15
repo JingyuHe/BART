@@ -35,6 +35,14 @@ printevery=100L, transposed=FALSE
 )
 {
 #--------------------------------------------------
+# tree
+if (length(treedraws) > 1) {
+   cat("The input number of sweeps (length of treedraws vector) is larger than one.\n")
+   cat("BART MCMC will initialize from the last sweep!")
+   treedraws = treedraws[length(treedraws)]
+}
+
+#--------------------------------------------------
 #data
 n = length(y.train)
 
