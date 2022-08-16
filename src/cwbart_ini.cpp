@@ -296,6 +296,9 @@ cout << "size of xi " << xi.size() << " " << xi[0].size() << endl;
    // copy the last forest of XBART as initialization of BART forest
    cout << "Loaded " << tmat.size() << " trees" << endl;
 
+   // copy trees to bm
+   bm.settree(tmat);
+
    // prior parameters
    bm.setprior(alpha, mybeta, tau);
 
