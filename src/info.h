@@ -61,12 +61,13 @@ public:
       double m = 100;
       this->c = m / pow(this->a0, 2) + 0.5;
       this->d = m / pow(this->a0, 2);
-      this->z3 = exp(lgamma(this->c) - this->c * log(this->d));
+      // this->z3 = exp(lgamma(this->c) - this->c * log(this->d));
+      this->logz3 = lgamma(this->c) - this->c * log(this->d);
    } // c = m/a0^2 +0.5; d= m/a0^2;
    double a0;
    double c;
    double d;
-   double z3;
+   double logz3;
 };
 
 #endif

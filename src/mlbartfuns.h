@@ -35,11 +35,13 @@ double drawnodelambda(size_t n, double sy, double c, double d, rn& gen);
 
 void drlamb(tree& t, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, rn& gen);
 
-double mllh(size_t n, double sy, double c, double d, double z3);
+double mllh(size_t n, double sy, double c, double d, double logz3);
 
 void drphi(double *phi, double *allfit, size_t n, size_t k, rn& gen);
 
 double gignorm(double eta, double chi, double psi);
+
+double loggignorm(double eta, double chi, double psi);
 
 double lgigkernal(double x, double eta, double chi, double psi);
 

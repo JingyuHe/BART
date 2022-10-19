@@ -1,7 +1,7 @@
 
 CXX_STD = CXX17
-PKG_CXXFLAGS = -fopenmp
-PKG_LIBS = -fopenmp
+PKG_CXXFLAGS =  -fopenmp
+PKG_LIBS = -fopenmp -lgsl -lgslcblas -lm 
 ##PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -fopenmp
 ##PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) -fopenmp
 

@@ -45,9 +45,9 @@ bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, double *phi,
       double alpha=0.0, lalpha=0.0;
       double lhl, lhr, lht;
       if((nl>=5) | (nr>=5)) { //cludge?
-         lhl = mllh(nl,syl, mpi.c, mpi.d, mpi.z3);
-         lhr = mllh(nr,syr, mpi.c, mpi.d, mpi.z3);
-         lht = mllh(nl+nr,syl+syr, mpi.c, mpi.d, mpi.z3);
+         lhl = mllh(nl,syl, mpi.c, mpi.d, mpi.logz3);
+         lhr = mllh(nr,syr, mpi.c, mpi.d, mpi.logz3);
+         lht = mllh(nl+nr,syl+syr, mpi.c, mpi.d, mpi.logz3);
    
          alpha=1.0;
          lalpha = log(pr) + (lhl+lhr-lht); // + log(sigma);
@@ -84,9 +84,9 @@ bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, double *phi,
       //--------------------------------------------------
       //compute alpha
       double lhl, lhr, lht;
-      lhl = mllh(nl,syl, mpi.c, mpi.d, mpi.z3);
-      lhr = mllh(nr,syr, mpi.c, mpi.d, mpi.z3);
-      lht = mllh(nl+nr,syl+syr, mpi.c, mpi.d, mpi.z3);
+      lhl = mllh(nl,syl, mpi.c, mpi.d, mpi.logz3);
+      lhr = mllh(nr,syr, mpi.c, mpi.d, mpi.logz3);
+      lht = mllh(nl+nr,syl+syr, mpi.c, mpi.d, mpi.logz3);
 
       double lalpha = log(pr) + (lht - lhl - lhr); // - log(sigma);
       lalpha = std::min(0.0,lalpha);
@@ -132,9 +132,9 @@ bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& m
          //compute sufficient statistics
          mlgetsuff(t[tree_iter * mdi.k + ik],nx[ik],v,c,xi,mdi,nl[ik],syl[ik],nr[ik],syr[ik]);
          //compute alpha
-         lhl = mllh(nl[ik],syl[ik], mpi.c, mpi.d, mpi.z3);
-         lhr = mllh(nr[ik],syr[ik], mpi.c, mpi.d, mpi.z3);
-         lht = mllh(nl[ik]+nr[ik],syl[ik]+syr[ik], mpi.c, mpi.d, mpi.z3);
+         lhl = mllh(nl[ik],syl[ik], mpi.c, mpi.d, mpi.logz3);
+         lhr = mllh(nr[ik],syr[ik], mpi.c, mpi.d, mpi.logz3);
+         lht = mllh(nl[ik]+nr[ik],syl[ik]+syr[ik], mpi.c, mpi.d, mpi.logz3);
          lalpha += lhl+lhr-lht; 
       }
       lalpha = std::min(0.0,lalpha);
@@ -178,9 +178,9 @@ bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& m
       {
          mdi.ik = ik;
          mlgetsuff(t[tree_iter * mdi.k + ik], nx[ik]->getl(), nx[ik]->getr(), xi, mdi, nl[ik], syl[ik], nr[ik], syr[ik]);
-         lhl = mllh(nl[ik],syl[ik], mpi.c, mpi.d, mpi.z3);
-         lhr = mllh(nr[ik],syr[ik], mpi.c, mpi.d, mpi.z3);
-         lht = mllh(nl[ik]+nr[ik],syl[ik]+syr[ik], mpi.c, mpi.d, mpi.z3);
+         lhl = mllh(nl[ik],syl[ik], mpi.c, mpi.d, mpi.logz3);
+         lhr = mllh(nr[ik],syr[ik], mpi.c, mpi.d, mpi.logz3);
+         lht = mllh(nl[ik]+nr[ik],syl[ik]+syr[ik], mpi.c, mpi.d, mpi.logz3);
          lalpha += (lht - lhl - lhr); // - log(sigma);
       }
       lalpha = std::min(0.0,lalpha);

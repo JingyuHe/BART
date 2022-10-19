@@ -64,19 +64,23 @@ num_trees = 100
 max_depth = 20
 mtry = NULL # round((p + p_cat)/3)
 #########################  parallel ####################3
-tm = proc.time()
-fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
-                        num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth,
-                        num_cutpoints=NULL, alpha=0.95, beta=1.25, 
-                        no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = p_cat,
-                        update_tau = FALSE, separate_tree = FALSE, stop_threshold = 0, hmult = 1, heps = 0)
+# tm = proc.time()
+# fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
+#                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth,
+#                         num_cutpoints=NULL, alpha=0.95, beta=1.25, 
+#                         no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = p_cat,
+#                         update_tau = FALSE, separate_tree = FALSE, stop_threshold = 0)
 
 
-tm = proc.time()-tm
-cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
-phat = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), mean)
-yhat = apply(phat,1,which.max)-1
-cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
+# tm = proc.time()-tm
+# cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
+# phat = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), mean)
+# yhat = apply(phat,1,which.max)-1
+# cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
+
+
+# spr <- split(phat, row(phat))
+# logloss <- sum(mapply(function(x,y) -log(x[y]), spr, y_test+1, SIMPLIFY =TRUE))
 
 
 nskip = 100
@@ -101,9 +105,6 @@ cat(paste("bart runtime: ", round(tm3["elapsed"],3)," seconds"),"\n")
 phat.bart.shrd <- t(apply(fit.bart.shrd$yhat.test, c(2, 3), mean))
 yhat.bart.shrd <- apply(phat.bart.shrd, 1, which.max) - 1
 
-spr <- split(phat, row(phat))
-logloss <- sum(mapply(function(x,y) -log(x[y]), spr, y_test+1, SIMPLIFY =TRUE))
-
 spr.bart.sep <- split(phat.bart.sep, row(phat.bart.sep))
 logloss.bart.sep <- sum(mapply(function(x,y) -log(x[y]), spr.bart.sep, y_test+1, SIMPLIFY =TRUE))
 
@@ -111,11 +112,11 @@ spr.bart.shrd <- split(phat.bart.shrd, row(phat.bart.shrd))
 logloss.bart.shrd <- sum(mapply(function(x,y) -log(x[y]), spr.bart.shrd, y_test+1, SIMPLIFY =TRUE))
 
 results = matrix(0, 3, 3)
-results[1,] = c(round(logloss,3), round(logloss.bart.sep,3), round(logloss.bart.shrd,3))
-results[2,] = c(round(tm["elapsed"],3), round(tm2["elapsed"],3), round(tm3["elapsed"],3))
-results[3,] = c(round(mean(y_test == yhat),3), round(mean(yhat.bart.sep == y_test),3), round(mean(yhat.bart.shrd == y_test),3))
+results[1,] = c(round(logloss.bart.sep,3), round(logloss.bart.shrd,3))
+results[2,] = c(round(tm2["elapsed"],3), round(tm3["elapsed"],3))
+results[3,] = c(round(mean(yhat.bart.sep == y_test),3), round(mean(yhat.bart.shrd == y_test),3))
 
 rownames(results) = c("logloss", "runtime", "accuracy")
-colnames(results) = c("XBART", "BART separate", "BART shared")
+colnames(results) = c("BART separate", "BART shared")
 
 print(results)

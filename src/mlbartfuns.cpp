@@ -2,7 +2,8 @@
 
 #include "mlbartfuns.h"
 #include <boost/math/special_functions/bessel.hpp>
-
+#include <gsl/gsl_sf_bessel.h>
+#include <Rcpp.h>
 
 
 using namespace boost::math;
@@ -196,140 +197,52 @@ void drlamb(tree& t, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, rn& gen)
 }
 
 //lh, replacement for lil that only depends on sum y.
-double mllh(size_t n, double sy, double c, double d, double z3)
+double mllh(size_t n, double sy, double c, double d, double logz3)
 {
-    double z1 = gignorm(-c + n, 2*d, 2*sy);
-    double z2 = gignorm(c + n, 0, 2*(d + sy));
-    // double z3 = gignorm(c, 0, 2*d); // should be predefined
-   return log((z1 + z2) / 2 / z3);
+   //  double z1 = gignorm(-c + n, 2*d, 2*sy);
+   //  double z2 = gignorm(c + n, 0, 2*(d + sy));
+   //  // double z3 = gignorm(c, 0, 2*d); // should be predefined
+   // return log((z1 + z2) / 2 / z3);
+
+   double logz1 = loggignorm(-c + n, 2*d, 2*sy);
+   double logz2 = loggignorm(c + n, 0, 2*(d + sy));
+   double logminz = logz1 < logz2 ? logz1 : logz2;
+   double numrt;
+
+   if (logz1 - logminz > 100) {
+         numrt = logz1; // approximate log(exp(x) + 1) = x
+   } else if (logz2 - logminz > 100)
+   { 
+         numrt = logz2;
+   } else {
+         numrt = log(exp(logz1 - logminz) + exp(logz2 - logminz)) + logminz;
+   }
+   return numrt - log(2) - logz3;
 }
 //--------------------------------------------------
 //draw one lambda from post 
 double drawnodelambda(size_t n, double sy, double c, double d, rn& gen)
 {
     /////////////////////////// generalize inversed Gaussian distribution
+    double logz1 = loggignorm(-c+n, 2*d, 2*sy);
+    double logz2 = loggignorm(c+n, 0, 2*(d+sy));
+    // cout << "z1 = " << z1 << " z2 = " << z2 << endl;
+    // double _pi =  z1 / (z1+z2) = 1 / (1 + z2 / z1) = 1 / (1 + exp(log(z2 / z1))) = 1 / (1 + exp(log(z2) - log(z1)))
+    double _pi = 1 / (1 + exp(logz2 - logz1));
+    double u = gen.uniform();
+    double ret;
 
-    // lambda ~ pi*GIG(-c+r, 2d, 2s) + (1-pi)*Gamma(c+r, d+s)
-    // pi = Z(-c+r, 2*d, 2*s) / (Z(-c+r, 2d, 2s) + Z(c+r, 0, 2*(d+s)))
-    // r = n, s = sy
-    double z1 = gignorm(-c+n, 2*d, 2*sy);
-    double z2 = gignorm(c+n, 0, 2*(d+sy));
-    double _pi =  z1 / (z1+z2);
-    if (gen.uniform() < _pi){ // draw from gig(-c+r, 2*d, 2*s)
+    if (u < _pi){ // draw from gig(-c+r, 2*d, 2*s)
         double eta = -c + n; 
         double chi = 2*d;
         double psi = 2*sy;
-        size_t num_try = 0;
-        double u, v, x;
-
-        if ((psi == 0)&&(eta < 0)&&(chi > 0)) return 1/gen.gamma(-eta, chi/2); // if psi == 0, its a inverse gamma distribution invGamma(-eta, chi/2)
-
-        if ((chi == 0)&&(eta > 0)&&(psi > 0)) return gen.gamma(eta, psi/2); // if chi == 0, it's Gamma(eta, psi/2)
-
-        double beta = sqrt(chi*psi);
-        if ((eta < 1)&&(eta >= 0)&&(beta <= sqrt(1-eta)*2/3)) {
-            /////////////// Rejection method for non-T-concave part ///////////////////////
-            // source: https://core.ac.uk/download/pdf/11008021.pdf
-            double k1, k2, k3, A1, A2, A3, A, h;
-            double m = beta / ((1-eta) + sqrt(pow(1-eta, 2) + pow(beta, 2)));
-            double x0 = beta / (1-eta);
-            double xs = x0 > 2/beta ? x0 : 2/beta;
-            k1 = exp( (eta-1)*log(m) - beta * (m + 1/m) / 2 ); // g(m) = x^(eta-1)*exp(-beta * (m+1/m) / 2)
-            A1 = k1 * x0;
-
-            if (x0 < 2/beta) {
-                k2 = exp(-beta);
-                if (eta == 0) { A2 = k2 * log(2 / pow(beta, 2)); }
-                else { A2 = k2 * (pow(2/beta, eta) - pow(x0, eta)) / eta; }
-            }else{  k2 = 0; A2 = 0; }
-            
-            k3 = pow(xs, eta - 1); A3 = 2 * k3 * exp(-xs * beta / 2) / beta;
-            A = A1 + A2 + A3;
-
-            while (num_try < 1000){
-                u = gen.uniform(); v = gen.uniform() * A;
-                if (v <= A1) { x = x0 * v / A1; h = k1; }
-                else if (v <= (A1 + A2)) {
-                    v = v - A1;
-                    if (eta == 0) { x = beta * exp(v * exp(beta)); }
-                    else { x = pow( pow(x0, eta) + v * eta / k2, 1/eta ); h = k2 * pow(x, eta - 1);  }
-                } else {
-                    v = v - A1 - A2;
-                    x = - 2 / beta * log( exp( -xs * beta / 2) - v * beta / 2 / k3 ); 
-                    h = k3 * exp(-x * beta / 2);
-                }
-                if (u * h <= exp( (eta - 1)*log(x) - beta * (x + 1/x) / 2 ) ) { return x;} // uh <= g(x, eta, chi , psi)
-                else { num_try += 1; }
-            }
-            // cout << "Warning: Sampling lambda exceeds 1000 iterations in rejection methhod for non-T-concave part" << endl;
-            // cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
-            // cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
-            // cout << "k1 = " << k1 << "; k2 = " << k2 << "; k3 = " << k3 << endl;
-            // cout << "A1 = " << A1 << "; A2 = " << A2 << "; A3 = " << A3 << "; x = " << x << endl;
-            return x;
-        }
-        
-        if ((eta <= 1)&&(eta >= 0)&&(beta <= 1)&&((beta >= 1/2) | (beta >= sqrt(1-eta)*2/3))){
-            /////////////// Ratio-of-Uniforms without node shift ///////////////////////
-            // source: https://core.ac.uk/download/pdf/11008021.pdf
-            double m = beta / ((1-eta) + sqrt((pow(1-eta, 2) + pow(beta, 2))));
-            double xp = ((1+eta) + sqrt(pow(1+eta, 2) + pow(beta, 2))) / beta;
-            double vp = sqrt( exp( (eta-1)*log(m) - beta * (m + 1/m) / 2 ) ); // sqrt(g(m))
-            double up = xp * sqrt( exp( (eta - 1)*log(xp) - beta * (xp + 1/xp) /2 ));
-
-            while (num_try < 1000){
-                u = gen.uniform() * up; v = gen.uniform() * vp;
-                x = u/v;
-                if (pow(v, 2) <= exp( (eta-1)*log(x) - beta * (x + 1/x) /2 )) { return x;}
-                else { num_try += 1; } 
-            }
-            // cout << "Warning: Sampling lambda exceeds 1000 iterations in ratio-of-uniforms without mode shift" << endl;
-            // cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
-            // cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
-            // cout << "m = " << m << "; xp = " << xp << "; vp = " << vp << "; up = " << up << "; x = " << x << endl;
-            return x;
-        }
-
-        /////////////// Ratio-of-Uniforms method ///////////////////////        
-        double bx, dx, ib, id, u1, u2;
-        bx = sqrt(pow(eta, 2) - 2*eta + chi * psi + 1) + eta - 1 == 0 ? chi/(2-2*eta) : (sqrt(pow(eta, 2) - 2*eta + chi * psi + 1) + eta - 1) / psi;
-        dx = sqrt(pow(eta, 2) + 2*eta + chi * psi + 1) + eta + 1 == 0 ? -chi / (2 * eta + 2) : (sqrt(pow(eta, 2) + 2*eta + chi * psi + 1) + eta + 1) / psi;
-        ib = sqrt(exp(lgigkernal(bx, eta, chi, psi)));
-        id = dx * sqrt(exp(lgigkernal(dx, eta, chi, psi)));
-
-        // if bx or dx is less than 0, likely psi is too closed to zero and caused an rounding error.
-        // if ((bx <= 0 | dx <= 0 | id <= 0 | ib <= 0) && (eta < 0)) return 1/gen.gamma(-eta, chi);
-         
-        while (num_try < 1000)
-        {
-            u1 = gen.uniform()*ib;
-            u2 = gen.uniform()*id;
-            if (isinf(u1) | isinf(u2) | isnan(u1) | isnan(u2)) {
-               //  cout << "u1 = " << u1 << "; u2 = " << u2 << endl;
-               //  cout << "bx = " << ib << "; ib = " << ib << "; dx = " << dx << "; id = " << id << endl;
-               //  cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
-               //  cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
-                exit(1);
-                }
-            if (2*log(u1) <= lgigkernal(u2/u1, eta, chi, psi)) {return u2 / u1; }
-            else {num_try += 1;}
-        }
-   
-      // When psi is extremely small and the sampling can not converge, it will eventually cause overflows
-      // So we try to consider psi as the case psi == 0 
-      if (eta < 0) {return 1/gen.gamma(-eta, chi/2);}
-      else {
-         //   cout << "Warning: Sampling lambda exceeds 1000 iterations." << endl;
-         //   cout << "ib = " << ib << "; bx = " << bx << "; id = " << id << "; dx = " << dx << endl;
-         //   cout << "u1 = " << u1 << "; u2 = " << u2 << "; u2/u1 = " << u2/u1 << endl;
-         //   cout << "eta = " << eta << "; chi = " << chi << "; psi = " << psi << endl; 
-         //   cout << "c = " << c << "; d = " << d << "; n = " << n << "; sy = " << sy << endl;
-           return u2/u1; 
-      }
+        Rcpp::Function f("rgig");
+        Rcpp::NumericVector ret_r = f(1, eta, chi, psi);
+        ret = ret_r(0);
+    } else { 
+        ret = gen.gamma(c+n, d+sy); 
     }
-    else { // draw from gig(c+r, 0, 2*(d+s)) or equivalently gamma(c+r, d+s)
-        return gen.gamma(c+n, d+sy);
-    }
+    return ret;
 }
 void drphi(double *phi, double *allfit, size_t n, size_t k, rn& gen)
 {
@@ -356,6 +269,27 @@ double gignorm(double eta, double chi, double psi)
     }
     return ret;
 }
+
+double loggignorm(double eta, double chi, double psi) 
+{ 
+    // cout << "eta = " << eta << " chi = " << chi << " psi = " << psi << endl;
+    double ret;
+    if ((eta > 0)&&(chi==0)&&(psi>0)){
+        ret = lgamma(eta) + eta * log(2 / psi);
+    }else if ((eta < 0)&&(chi>0)&&(psi==0)){
+        ret = (lgamma(-eta) - eta * log(2 / chi));
+    }else if ((chi>0)&&(psi>0)){
+        // cout << "eta = " << eta << " sqrt(chi*psi) = " << sqrt(chi*psi) << " bessel_k = " << bessel_k;
+        double sq = sqrt(chi*psi);
+        double lbessel_k = eta > 0 ? gsl_sf_bessel_lnKnu(eta, sq) : log(boost::math::cyl_bessel_k(eta, sq));
+        // ret = exp(log(2*bessel_k) - (eta / 2) * log(psi / chi));
+        ret = (log(2) + lbessel_k - (eta / 2) * log(psi / chi));
+        // cout << " lnKnu = " << lbessel_k <<  " exp(lKn) = " << exp(lbessel_k) << " log(ret) = " << log(2) + lbessel_k - (eta / 2) * log(psi / chi) << " ret = " << ret << endl;
+    }
+    return ret;
+}
+
+
 double lgigkernal(double x, double eta, double chi, double psi)
 {
     // return pow(x, eta-1)*exp(-(chi/x + psi*x)/2);

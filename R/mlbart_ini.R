@@ -42,6 +42,7 @@ mlbart_ini=function(treedraws,
                a0 = 3.5/sqrt(2)
                )
 {
+    require(GIGrvg)
     if(is.na(ntype))
         stop("type argument must be set to either 'separate' or 'shared'")
 
