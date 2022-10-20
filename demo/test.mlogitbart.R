@@ -111,7 +111,7 @@ logloss.bart.sep <- sum(mapply(function(x,y) -log(x[y]), spr.bart.sep, y_test+1,
 spr.bart.shrd <- split(phat.bart.shrd, row(phat.bart.shrd))
 logloss.bart.shrd <- sum(mapply(function(x,y) -log(x[y]), spr.bart.shrd, y_test+1, SIMPLIFY =TRUE))
 
-results = matrix(0, 3, 3)
+results = matrix(0, 3, 2)
 results[1,] = c(round(logloss.bart.sep,3), round(logloss.bart.shrd,3))
 results[2,] = c(round(tm2["elapsed"],3), round(tm3["elapsed"],3))
 results[3,] = c(round(mean(yhat.bart.sep == y_test),3), round(mean(yhat.bart.shrd == y_test),3))
