@@ -1,5 +1,6 @@
 library(XBART)
 library(BART)
+library(xgboost)
 seed = 10
 set.seed(seed)
 
@@ -46,7 +47,7 @@ lamt[,3] = 3*X_test[,3]^2
 # lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
 
 # vary s to make the problem harder s < 1 or easier s > 2
-s = 15
+s = 1
 pr = exp(s*lam)
 pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
 y_train = sapply(1:n,function(j) sample(0:(k-1),1,prob=pr[j,]))
@@ -91,8 +92,8 @@ if(separate_tree){
 
 # extreme case, only draw one posterior sample
 # warm start should be better than the root initialization
-n_posterior = 1
-thinning = 1
+n_posterior = 100
+thinning = 10
 
 tm2 = proc.time()
 fit.bart.warmstart <- mlbart_ini(fit$treedraws[20], x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
@@ -102,33 +103,61 @@ cat(paste("warmstart runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 phat.bart.warmstart <- t(apply(fit.bart.warmstart$yhat.test, c(2, 3), mean))
 yhat.bart.warmstart <- apply(phat.bart.warmstart, 1, which.max) - 1
 
+# Trace plot acc / individual prediction
+yhat_trace <- apply(fit.bart.warmstart$yhat.test, 1, function(phat) apply(phat, 2, which.max) - 1)
+acc_trace <- apply(yhat_trace, 2, function(yhat) mean(yhat == y_test))
+plot(1:n_posterior, acc_trace, type = "l")
+
+ind <- 90
+ind_trace <- fit.bart.warmstart$yhat.test[,y_test[ind] + 1,ind]
+plot(1:n_posterior, ind_trace, type = "l")
+
+n_posterior = 500
+thinning = 10
 
 tm3 = proc.time()
 fit.bart <- mlbart(x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
-                       type='shared', power=2, base=0.95, 
+                       type='shared', power=1.25, base=0.95, 
                        ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=burnin)
 tm3 = proc.time()-tm3
 cat(paste("bart runtime: ", round(tm3["elapsed"],3)," seconds"),"\n")
 phat.bart <- t(apply(fit.bart$yhat.test, c(2, 3), mean))
 yhat.bart <- apply(phat.bart, 1, which.max) - 1
 
+tm4 <- proc.time()
+# fit.xgb <- xgboost(data = X_train, label = y_train, num_class = k, verbose = 0, max_depth = 4, subsample = 0.80, nrounds = 500, early_stopping_rounds = 2, eta = 0.1, params = list(objective = "multi:softprob"))
+fit.xgb <- xgboost(data = as.matrix(X_train), label = matrix(y_train),
+                   num_class=k, verbose = 0,
+                   nrounds=200,
+                   early_stopping_rounds = 50,
+                   params=list(objective="multi:softprob"))
+tm4 <- proc.time() - tm4
+cat(paste("XGBoost runtime: ", round(tm2["elapsed"], 3), " seconds"), "\n")
+phat.xgb <- predict(fit.xgb, X_test)
+phat.xgb <- matrix(phat.xgb, ncol = k, byrow = TRUE)
+yhat.xgb <- max.col(phat.xgb) - 1
+
 spr <- split(phat, row(phat))
-logloss <- sum(mapply(function(x,y) -log(x[y]), spr, y_test+1, SIMPLIFY =TRUE))
+logloss <- sum(mapply(function(x,y) -log(x[y]), spr, y_test+1, SIMPLIFY =TRUE)) / nt
 
 spr.bart <- split(phat.bart, row(phat.bart))
-logloss.bart <- sum(mapply(function(x,y) -log(x[y]), spr.bart, y_test+1, SIMPLIFY =TRUE))
+logloss.bart <- sum(mapply(function(x,y) -log(x[y]), spr.bart, y_test+1, SIMPLIFY =TRUE)) / nt
 
 spr.bart.warmstart <- split(phat.bart.warmstart, row(phat.bart.warmstart))
-logloss.bart.warmstart <- sum(mapply(function(x,y) -log(x[y]), spr.bart.warmstart, y_test+1, SIMPLIFY =TRUE))
+logloss.bart.warmstart <- sum(mapply(function(x,y) -log(x[y]), spr.bart.warmstart, y_test+1, SIMPLIFY =TRUE))  / nt
+
+spr <- split(phat.xgb, row(phat.xgb))
+logloss.xgb <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY = TRUE)) / nt
 
 
-results = matrix(0, 3, 3)
-results[1,] = c(round(logloss,3),  round(logloss.bart,3), round(logloss.bart.warmstart, 3))
-results[2,] = c(round(tm["elapsed"],3), round(tm3["elapsed"],3), round(tm2["elapsed"],3))
-results[3,] = c(round(mean(y_test == yhat),3), round(mean(yhat.bart == y_test),3), round(mean(yhat.bart.warmstart == y_test),3))
+results = matrix(0, 3, 4)
+results[1,] = c(round(logloss,3),  round(logloss.bart,3), round(logloss.bart.warmstart, 3), round(logloss.xgb, 3))
+results[2,] = c(round(tm["elapsed"],3), round(tm3["elapsed"],3), round(tm2["elapsed"],3), round(tm4["elapsed"], 3))
+results[3,] = c(round(mean(y_test == yhat),3), round(mean(yhat.bart == y_test),3), round(mean(yhat.bart.warmstart == y_test),3), round(mean(yhat.xgb == y_test),3))
 
 rownames(results) = c("logloss", "runtime", "accuracy")
-colnames(results) = c("XBART", "BART", "Warmstart")
+colnames(results) = c("XBART", "BART", "Warmstart", "Xgb")
 
 print(results)
+
 

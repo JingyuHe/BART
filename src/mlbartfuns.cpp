@@ -223,27 +223,36 @@ double mllh(size_t n, double sy, double c, double d, double logz3)
 //draw one lambda from post 
 double drawnodelambda(size_t n, double sy, double c, double d, rn& gen)
 {
-    /////////////////////////// generalize inversed Gaussian distribution
-    double logz1 = loggignorm(-c+n, 2*d, 2*sy);
-    double logz2 = loggignorm(c+n, 0, 2*(d+sy));
-    // cout << "z1 = " << z1 << " z2 = " << z2 << endl;
-    // double _pi =  z1 / (z1+z2) = 1 / (1 + z2 / z1) = 1 / (1 + exp(log(z2 / z1))) = 1 / (1 + exp(log(z2) - log(z1)))
-    double _pi = 1 / (1 + exp(logz2 - logz1));
-    double u = gen.uniform();
-    double ret;
+   /////////////////////////// generalize inversed Gaussian distribution
+   double logz1 = loggignorm(-c+n, 2*d, 2*sy);
+   double logz2 = loggignorm(c+n, 0, 2*(d+sy));
+   // cout << "z1 = " << z1 << " z2 = " << z2 << endl;
+   // double _pi =  z1 / (z1+z2) = 1 / (1 + z2 / z1) = 1 / (1 + exp(log(z2 / z1))) = 1 / (1 + exp(log(z2) - log(z1)))
+   double _pi = 1 / (1 + exp(logz2 - logz1));
+   double u = gen.uniform();
+   double ret;
 
-    if (u < _pi){ // draw from gig(-c+r, 2*d, 2*s)
-        double eta = -c + n; 
-        double chi = 2*d;
-        double psi = 2*sy;
-        Rcpp::Function f("rgig");
-        Rcpp::NumericVector ret_r = f(1, eta, chi, psi);
-        ret = ret_r(0);
+   double eta, chi, psi;
+   Rcpp::Function f("rgig");
+
+    if (u < _pi){ 
+      // draw from gig(-c+r, 2*d, 2*s)
+      eta = -c + n; 
+      chi = 2*d;
+      psi = 2*sy;
+      Rcpp::NumericVector ret_r = f(1, eta, chi, psi);
+      ret = ret_r(0);
     } else { 
-        ret = gen.gamma(c+n, d+sy); 
+      //   ret = gen.gamma(c+n, 1) / (d+sy); 
+      eta = c + n; 
+      chi = 0;
+      psi = 2 * (d+sy);
+      Rcpp::NumericVector ret_r = f(1, eta, chi, psi);
+      ret = ret_r(0);
     }
     return ret;
 }
+
 void drphi(double *phi, double *allfit, size_t n, size_t k, rn& gen)
 {
     double sum_fit; 
