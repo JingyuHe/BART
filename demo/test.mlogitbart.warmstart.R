@@ -86,8 +86,8 @@ if(separate_tree){
 
 # extreme case, only draw one posterior sample
 # warm start should be better than the root initialization
-n_posterior = 100
-thinning = 10
+n_posterior = 10
+thinning = 1
 
 tm2 = proc.time()
 fit.bart.warmstart <- mlbart_ini(fit$treedraws[20], x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
