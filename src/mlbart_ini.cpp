@@ -67,7 +67,8 @@ RcppExport SEXP mlogitbart_ini(
    SEXP _ia0,
    SEXP _inprintevery,
    SEXP _Xinfo,
-   SEXP _treedraws
+   SEXP _treedraws,
+   SEXP _update_phi
 )
 {
    //process args
@@ -94,6 +95,7 @@ RcppExport SEXP mlogitbart_ini(
    double mybeta = Rcpp::as<double>(_ipower);
    double alpha = Rcpp::as<double>(_ibase);
    double a0 = Rcpp::as<double>(_ia0);
+   bool update_phi = Rcpp::as<bool>(_update_phi);
    size_t nkeeptrain = nd/thin;  // = ndpost    //Rcpp::as<int>(_inkeeptrain);
    size_t nkeeptest = nd/thin;   // = ndpost    //Rcpp::as<int>(_inkeeptest);
    size_t nkeeptreedraws = nd/thin; //Rcpp::as<int>(_inkeeptreedraws);
@@ -258,7 +260,7 @@ void mlogitbart_ini(
    //set up BART model
    // copy the last forest of XBART as initialization of BART forest
    bm.settree(tmat);
-   bm.setprior(m, a0, alpha, mybeta);
+   bm.setprior(m, a0, alpha, mybeta, update_phi);
    bm.setdata(p,n,ix,z,numcut, separate);
 
    // bm.setdart(a,b,rho,aug,dart);

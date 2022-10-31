@@ -8,7 +8,7 @@ set.seed(seed)
 # simulation parameters
 n <- 5000 # training size
 nt <- 2000 # testing size
-p <- 6 # number of X variables
+p <- 30 # number of X variables
 p_cat <- 0 # number of categorical X variables
 k <- 6 # number of classes
 lam <- matrix(0, n, k)
@@ -40,7 +40,7 @@ lamt[, 6] <- 2 * (X_test[, 1] + X_test[, 3] - X_test[, 5])
 
 #####################
 # vary s to make the problem harder s < 1 or easier s > 2
-s <- 10
+s <- 1
 pr <- exp(s * lam)
 pr <- t(scale(t(pr), center = FALSE, scale = rowSums(pr)))
 y_train <- sapply(1:n, function(j) sample(0:(k - 1), 1, prob = pr[j, ]))
@@ -48,10 +48,6 @@ y_train <- sapply(1:n, function(j) sample(0:(k - 1), 1, prob = pr[j, ]))
 pr <- exp(s * lamt)
 pr <- t(scale(t(pr), center = FALSE, scale = rowSums(pr)))
 y_test <- sapply(1:nt, function(j) sample(0:(k - 1), 1, prob = pr[j, ]))
-
-X_test = X_train
-y_test = y_train
-
 
 #########################  parallel ####################
 # num_sweeps = ceiling(200/log(n)) 
@@ -69,7 +65,7 @@ fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train,
     p_categorical = p_cat, tau_a = 3.5, tau_b = 3,
     verbose = T, parallel = T,
     separate_tree = separate_tree, 
-    update_tau = F, update_weight = T)
+    update_tau = F, update_weight = T, a = 0.1, update_phi = F)
 tm = proc.time()-tm
 cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 
@@ -86,12 +82,12 @@ if(separate_tree){
 
 # extreme case, only draw one posterior sample
 # warm start should be better than the root initialization
-n_posterior = 10
-thinning = 1
+n_posterior = 100
+thinning = 5
 
 tm2 = proc.time()
-fit.bart.warmstart <- mlbart_ini(fit$treedraws[20], x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
-    type=type, power=1.25, base=0.95, ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=burnin) #nskipp = burnin
+fit.bart.warmstart <- mlbart_ini(fit$treedraws[(burnin+1):num_sweeps], x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
+    type=type, power=1.25, base=0.95, ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=burnin, update_phi = F) #nskipp = burnin
 tm2 = proc.time()-tm2
 cat(paste("warmstart runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 phat.bart.warmstart <- t(apply(fit.bart.warmstart$yhat.test, c(2, 3), mean))
@@ -109,7 +105,7 @@ plot(1:n_posterior, acc_trace, type = "l")
 tm3 = proc.time()
 fit.bart <- mlbart(x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
                        type='shared', power=1.25, base=0.95, 
-                       ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=0) #nskip = burnin
+                       ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=0, update_phi = F) #nskip = burnin
 tm3 = proc.time()-tm3
 cat(paste("bart runtime: ", round(tm3["elapsed"],3)," seconds"),"\n")
 phat.bart <- t(apply(fit.bart$yhat.test, c(2, 3), mean))
@@ -124,19 +120,6 @@ yhat.bart <- apply(phat.bart, 1, which.max) - 1
 # cat(paste("bart runtime: ", round(tm5["elapsed"],3)," seconds"),"\n")
 # phat.bart.sep <- t(apply(fit.bart.sep$yhat.test, c(2, 3), mean))
 # yhat.bart.sep <- apply(phat.bart.sep, 1, which.max) - 1
-
-# 
-# par(mfrow = c(2, 2))
-# 
-# ind <- 1
-# ind_trace <- fit.bart.warmstart$yhat.test[,y_test[ind] + 1,ind]
-# plot(1:n_posterior, ind_trace, type = "l", main = "warmstart")
-# 
-# ind_trace <- fit.bart$yhat.test[,y_test[ind] + 1,ind]
-# plot(1:n_posterior, ind_trace, type = "l", main = "BART")
-# 
-# ind_trace <- pred$yhats[,ind,y_test[ind] + 1]
-# plot(1:n_posterior, ind_trace, type = "l", main = "XBART")
 
 tm4 <- proc.time()
 # fit.xgb <- xgboost(data = X_train, label = y_train, num_class = k, verbose = 0, max_depth = 4, subsample = 0.80, nrounds = 500, early_stopping_rounds = 2, eta = 0.1, params = list(objective = "multi:softprob"))
@@ -163,6 +146,21 @@ logloss.bart.warmstart <- sum(mapply(function(x,y) -log(x[y]), spr.bart.warmstar
 spr <- split(phat.xgb, row(phat.xgb))
 logloss.xgb <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY = TRUE)) / nt
 
+
+# # 
+par(mfrow = c(2, 2))
+ind <- 3
+ind_trace <- fit.bart.warmstart$yhat.test[,y_test[ind] + 1,ind]
+plot(1:n_posterior, ind_trace, type = "l", main = "warmstart")
+
+ind_trace <- fit.bart$yhat.test[,y_test[ind] + 1,ind]
+plot(1:n_posterior, ind_trace, type = "l", main = "BART")
+
+ind_trace <- pred$yhats[,ind,y_test[ind] + 1]
+plot(1:length(ind_trace), ind_trace, type = "l", main = "XBART")
+
+print(paste("Xgboost prob for ind", ind, "=", phat.xgb[ind, y_test[ind]+1]))
+print(paste("True prob for ind", ind, "=", pr[ind, y_test[ind]+1]))
 
 results = matrix(0, 3, 4)
 results[1,] = c(round(logloss,3),  round(logloss.bart,3), round(logloss.bart.warmstart, 3), round(logloss.xgb, 3))

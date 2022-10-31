@@ -57,13 +57,14 @@ y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 
 
 
+
+#########################  XBART ####################3
 # num_sweeps = ceiling(200/log(n)) 
-num_sweeps = 20
-burnin = 5
-num_trees = 100
-max_depth = 20
-mtry = NULL # round((p + p_cat)/3)
-#########################  parallel ####################3
+# num_sweeps = 20
+# burnin = 5
+# num_trees = 100
+# max_depth = 20
+# mtry = NULL # round((p + p_cat)/3)
 # tm = proc.time()
 # fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
 #                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth,
@@ -82,6 +83,7 @@ mtry = NULL # round((p + p_cat)/3)
 # spr <- split(phat, row(phat))
 # logloss <- sum(mapply(function(x,y) -log(x[y]), spr, y_test+1, SIMPLIFY =TRUE))
 
+#########################  BART ####################3
 
 nskip = 100
 ndpost = 100
@@ -89,7 +91,7 @@ keepevery = 10
 tm2 = proc.time()
 fit.bart.sep <- mlbart(x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
                    type='separate', power=2, base=0.95, 
-                   ntree = 20, ndpost = ndpost, keepevery=keepevery, nskip=nskip)
+                   ntree = 20, ndpost = ndpost, keepevery=keepevery, nskip=nskip, update_phi = T)
 tm2 = proc.time()-tm2
 cat(paste("bart runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 phat.bart.sep <- t(apply(fit.bart.sep$yhat.test, c(2, 3), mean))
@@ -99,7 +101,7 @@ yhat.bart.sep <- apply(phat.bart.sep, 1, which.max) - 1
 tm3 = proc.time()
 fit.bart.shrd <- mlbart(x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
                        type='shared', power=2, base=0.95, 
-                       ntree = 20, ndpost = ndpost, keepevery=keepevery, nskip=nskip)
+                       ntree = 20, ndpost = ndpost, keepevery=keepevery, nskip=nskip, update_phi = T)
 tm3 = proc.time()-tm3
 cat(paste("bart runtime: ", round(tm3["elapsed"],3)," seconds"),"\n")
 phat.bart.shrd <- t(apply(fit.bart.shrd$yhat.test, c(2, 3), mean))

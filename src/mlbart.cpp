@@ -66,7 +66,8 @@ RcppExport SEXP mlogitbart(
    // SEXP _iaug,          //categorical strategy: true(1)=data augment false(0)=degenerate trees
    SEXP _ia0,
    SEXP _inprintevery,
-   SEXP _Xinfo
+   SEXP _Xinfo,
+   SEXP _update_phi
 )
 {
    //process args
@@ -93,6 +94,7 @@ RcppExport SEXP mlogitbart(
    double mybeta = Rcpp::as<double>(_ipower);
    double alpha = Rcpp::as<double>(_ibase);
    double a0 = Rcpp::as<double>(_ia0);
+   bool update_phi = Rcpp::as<bool>(_update_phi);
    size_t nkeeptrain = nd/thin;  // = ndpost    //Rcpp::as<int>(_inkeeptrain);
    size_t nkeeptest = nd/thin;   // = ndpost    //Rcpp::as<int>(_inkeeptest);
    size_t nkeeptreedraws = nd/thin; //Rcpp::as<int>(_inkeeptreedraws);
@@ -232,7 +234,7 @@ void mlogitbart(
    for(size_t i=0; i<n; i++) z[i] = iy[i];
    // --------------------------------------------------
    //set up BART model
-   bm.setprior(m, a0, alpha, mybeta);
+   bm.setprior(m, a0, alpha, mybeta, update_phi);
    bm.setdata(p,n,ix,z,numcut, separate);
    // bm.setdart(a,b,rho,aug,dart);
    // dart iterations

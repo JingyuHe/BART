@@ -39,7 +39,8 @@ mlbart_ini=function(treedraws,
                printevery=100L, transposed=FALSE,
                hostname=FALSE,
                mc.cores = 1L, nice = 19L, seed = 99L,
-               a0 = 3.5/sqrt(2)
+               a0 = 3.5/sqrt(2),
+               update_phi = FALSE
                )
 {
     require(GIGrvg)
@@ -228,13 +229,14 @@ mlbart_ini=function(treedraws,
                     a0,
                     printevery,
                     xinfo,
-                    treedraws[sweeps]
+                    treedraws[sweeps],
+                    update_phi
                     )
 
             # res$yhat.train dimnames
             res$yhat.train = array(res$yhat.train, dim = c(this_ndpost, num_class, n))
             if(np>0) {res$yhat.test = array(res$yhat.test, dim = c(this_ndpost, num_class, np))}
-            
+
             obj$yhat.train[(count_ndpost + 1) : (count_ndpost + this_ndpost),,] <- res$yhat.train
             obj$yhat.test[(count_ndpost + 1) : (count_ndpost + this_ndpost),,] <- res$yhat.test
             count_ndpost <- count_ndpost + this_ndpost

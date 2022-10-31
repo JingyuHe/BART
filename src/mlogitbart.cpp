@@ -46,7 +46,7 @@ void mlbart::setdata(size_t p, size_t n, double *x, double *y, int *nc, bool sep
 
    if(phi) delete[] phi;
    phi = new double[n];
-   // for (size_t i = 0; i < n; i++) phi[i] = 1;
+   for (size_t i = 0; i < n; i++) phi[i] = 1;
 
    mdi.n=n; mdi.p=p; mdi.x = &x[0]; mdi.y=y;
    mdi.k = k; mdi.phi = phi; mdi.f = allfit; mdi.ik = 0;
@@ -103,7 +103,9 @@ void mlbart::draw(rn& gen)
 {
    for(size_t j=0; j< (size_t) m/k;j++) {
       // cout << "ok 1" << endl;
-      drphi(phi, allfit, n, k, gen);
+      if (mpi.update_phi) {
+         drphi(phi, allfit, n, k, gen);
+      }
       if (separate){
          // cout << "ok 2" << endl;
          for(size_t ik = 0; ik < k; ik++){ // loop through categories

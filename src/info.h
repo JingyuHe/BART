@@ -68,6 +68,7 @@ public:
    double c;
    double d;
    double logz3;
+   bool update_phi;
 };
 
 #endif

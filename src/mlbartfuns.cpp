@@ -180,8 +180,8 @@ void mlallsuff(tree& x, xinfo& xi, mlogitdinfo& mdi, tree::npv& bnv, std::vector
       ni = bnmap[tbn];
       if (mdi.y[i] == mdi.ik) {++(nv[ni]);}
       syv[ni] += mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]);
-    //   cout << "phi = " << mdi.phi[i] << "; f = " << mdi.f[mdi.ik*mdi.n + i] << endl;
    }
+   // cout << "phi = " << mdi.phi[0] << "; f = " << mdi.f[mdi.ik*mdi.n + 0] << endl;
 }
 //--------------------------------------------------
 // draw all the bottom node lambda's

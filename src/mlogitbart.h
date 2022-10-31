@@ -37,9 +37,9 @@ public:
    friend bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& pi, double *phi, 
 	     std::vector<size_t>& nv, std::vector<double>& pv, bool aug, rn& gen);
 
-   void setprior(double m, double a0, double alpha, double beta) // by default a0 = 3.5/sqrt(2)
-      {mpi.a0=a0; mpi.c = m / pow(a0, 2) + 0.5; mpi.d=m / pow(a0, 2); mpi.logz3 = lgamma(mpi.c) - mpi.c * log(mpi.d);
-      cout << "prior a0 = " << a0 << ", m = " << m << ", c=" <<  mpi.c << ", d=" << mpi.d << ", z3 = "<< exp(mpi.logz3) << endl;
+   void setprior(double m, double a0, double alpha, double beta, bool update_phi) // by default a0 = 3.5/sqrt(2)
+      {mpi.a0=a0; mpi.c = m / pow(a0, 2) + 0.5; mpi.d=m / pow(a0, 2); mpi.logz3 = lgamma(mpi.c) - mpi.c * log(mpi.d); mpi.update_phi = update_phi;
+      cout << "prior a0 = " << a0 << ", m = " << m << ", c=" <<  mpi.c << ", d=" << mpi.d << ", z3 = "<< exp(mpi.logz3) << ", update_phi " << update_phi << endl;
        pi.alpha = alpha; pi.mybeta = beta;
       }
    void setdata(size_t p, size_t n, double *x, double *y, int *nc, bool separate);
