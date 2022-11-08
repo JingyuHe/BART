@@ -39,6 +39,8 @@ double mllh(size_t n, double sy, double c, double d, double logz3);
 
 void drphi(double *phi, double *allfit, size_t n, size_t k, rn& gen);
 
+double w_likelihood(double weight, double logloss, double a, size_t n, size_t k);
+
 double gignorm(double eta, double chi, double psi);
 
 double loggignorm(double eta, double chi, double psi);
@@ -52,5 +54,7 @@ size_t bpropShrTr(tree& x, xinfo& xi, pinfo& pi, tree::npv& goodbots, double& PB
 size_t dpropShrTr(tree& x, xinfo& xi, pinfo& pi,tree::npv& goodbots, double& PBx, tree::tree_p& nx, double& pr, rn& gen);
 
 void load_classification_tree(std::istream& is, tree &t, size_t itree, size_t iclass, xinfo& xi);
+
+double normal_density(double y, double mean, double var, bool take_log);
 
 #endif

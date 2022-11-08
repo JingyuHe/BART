@@ -31,11 +31,14 @@ public:
 };
 class mlogitdinfo: public dinfo {
    public:
-   mlogitdinfo(): dinfo() {k=0;phi=0;f=0;ik=0;}
+   mlogitdinfo(): dinfo() {k=0;phi=0;f=0;ik=0;weight=2.5;weight_latent=2.5;logloss_last_sweep=0;}
    size_t k; // number of class / categories
    double *phi;
    double *f; // allfit
    size_t ik; // current class
+   double weight;
+   double weight_latent;
+   double logloss_last_sweep;
 };
 //prior and mcmc
 class pinfo
@@ -57,7 +60,7 @@ public:
 };
 class mlogitpinfo: public pinfo {
 public:
-   mlogitpinfo(): pinfo(), a0(3.5/sqrt(2)) {
+   mlogitpinfo(): pinfo(), a0(3.5/sqrt(2)), a(1), MH_step(0.05) {
       double m = 100;
       this->c = m / pow(this->a0, 2) + 0.5;
       this->d = m / pow(this->a0, 2);
@@ -69,6 +72,9 @@ public:
    double d;
    double logz3;
    bool update_phi;
+   bool update_weight;
+   double a;
+   double MH_step;
 };
 
 #endif

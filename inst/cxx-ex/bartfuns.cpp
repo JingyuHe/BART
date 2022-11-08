@@ -348,7 +348,7 @@ double drawnodemu(size_t n, double sy, double tau, double sigma, rn& gen)
    double s2 = sigma*sigma;
    double b = n/s2;
    double a = 1.0/(tau*tau);
-   return (sy/s2)/(a+b) + gen.normal()/sqrt(a+b);
+   return (sy/s2)/(a+b) + mal()/sqrt(a+b);
 }
 
 double log_sum_exp(std::vector<double>& v){

@@ -65,10 +65,16 @@ RcppExport SEXP mlogitbart_ini(
    // SEXP _irho,          //param rho for sparsity prior (default to p)
    // SEXP _iaug,          //categorical strategy: true(1)=data augment false(0)=degenerate trees
    SEXP _ia0,
+   SEXP _ic,
+   SEXP _id,
    SEXP _inprintevery,
    SEXP _Xinfo,
    SEXP _treedraws,
-   SEXP _update_phi
+   SEXP _update_phi,
+   SEXP _update_weight,
+   SEXP _iweight,
+   SEXP _ia,
+   SEXP _iMH_step
 )
 {
    //process args
@@ -95,7 +101,13 @@ RcppExport SEXP mlogitbart_ini(
    double mybeta = Rcpp::as<double>(_ipower);
    double alpha = Rcpp::as<double>(_ibase);
    double a0 = Rcpp::as<double>(_ia0);
+   double c = Rcpp::as<double>(_ic);
+   double d = Rcpp::as<double>(_id);
    bool update_phi = Rcpp::as<bool>(_update_phi);
+   bool update_weight = Rcpp::as<bool>(_update_weight);
+   double weight = Rcpp::as<double>(_iweight);
+   double a = Rcpp::as<double>(_ia);
+   double MH_step = Rcpp::as<double>(_iMH_step);
    size_t nkeeptrain = nd/thin;  // = ndpost    //Rcpp::as<int>(_inkeeptrain);
    size_t nkeeptest = nd/thin;   // = ndpost    //Rcpp::as<int>(_inkeeptest);
    size_t nkeeptreedraws = nd/thin; //Rcpp::as<int>(_inkeeptreedraws);
@@ -104,6 +116,7 @@ RcppExport SEXP mlogitbart_ini(
    Rcpp::IntegerMatrix varcnt(nkeeptreedraws,p);
    Rcpp::NumericMatrix Xinfo(_Xinfo);
    Rcpp::NumericVector sdraw(nd+burn);
+   Rcpp::NumericVector wdraw(nkeeptreedraws);
    Rcpp::NumericMatrix trdraw(nkeeptrain, n*k);
    Rcpp::NumericMatrix tedraw(nkeeptest, np*k);
 
@@ -260,8 +273,8 @@ void mlogitbart_ini(
    //set up BART model
    // copy the last forest of XBART as initialization of BART forest
    bm.settree(tmat);
-   bm.setprior(m, a0, alpha, mybeta, update_phi);
-   bm.setdata(p,n,ix,z,numcut, separate);
+   bm.setprior(m, a0, c, d, alpha, mybeta, update_phi, update_weight, a, MH_step);
+   bm.setdata(p,n,ix,z,numcut, separate, weight);
 
    // bm.setdart(a,b,rho,aug,dart);
    // dart iterations
@@ -292,6 +305,11 @@ void mlogitbart_ini(
       // if(i==(burn/2)&&dart) bm.startdart();
       //draw bart
       bm.draw(gen);
+
+      if(update_weight)
+      {
+         bm.drweight(gen, weight);
+      }
 
    //    //draw sigma
    //    if(type==1) {
@@ -326,22 +344,24 @@ void mlogitbart_ini(
          }
          keeptreedraw = nkeeptreedraws && (((i-burn+1) % skiptreedraws) ==0);
          if(keeptreedraw) {
+
+            size_t kk=(i-burn)/skiptreedraws;
             for(size_t j=0;j<m*k;j++) {
 	            treess << bm.gettree(j);
 
                #ifndef NoRcpp
                ivarcnt=bm.getnv();
                ivarprb=bm.getpv();
-               size_t k=(i-burn)/skiptreedraws;
                for(size_t j=0;j<p;j++){
-                  varcnt(k,j)=ivarcnt[j];
-                  varprb(k,j)=ivarprb[j];
+                  varcnt(kk,j)=ivarcnt[j];
+                  varprb(kk,j)=ivarprb[j];
                }
                #else
                varcnt.push_back(bm.getnv());
                varprb.push_back(bm.getpv());
                #endif
 	         }
+            wdraw(kk) = weight;
          }
       }
    }
@@ -363,6 +383,7 @@ void mlogitbart_ini(
    ret["yhat.test"]=tedraw;
    ret["varcount"]=varcnt;
    ret["varprob"]=varprb;
+   ret["wdraw"]=wdraw;
 
    Rcpp::List xiret(xi.size());
    for(size_t i=0;i<xi.size();i++) {

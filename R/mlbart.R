@@ -40,7 +40,11 @@ mlbart=function(
                hostname=FALSE,
                mc.cores = 1L, nice = 19L, seed = 99L,
                a0 = 3.5/sqrt(2),
-               update_phi = FALSE
+               update_phi = FALSE,
+               update_weight = TRUE,
+               weight = 2.5,
+               a = 1 / num_class,
+               MH_step = 0.05
                )
 {
     require(GIGrvg)
@@ -206,7 +210,11 @@ mlbart=function(
                 a0,
                 printevery,
                 xinfo,
-                update_phi
+                update_phi,
+                update_weight,
+                weight,
+                a,
+                MH_step
                 )
 
     res$proc.time <- proc.time()-ptm

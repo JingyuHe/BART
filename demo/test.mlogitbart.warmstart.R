@@ -40,7 +40,7 @@ lamt[, 6] <- 2 * (X_test[, 1] + X_test[, 3] - X_test[, 5])
 
 #####################
 # vary s to make the problem harder s < 1 or easier s > 2
-s <- 1
+s <- 10
 pr <- exp(s * lam)
 pr <- t(scale(t(pr), center = FALSE, scale = rowSums(pr)))
 y_train <- sapply(1:n, function(j) sample(0:(k - 1), 1, prob = pr[j, ]))
@@ -51,21 +51,35 @@ y_test <- sapply(1:nt, function(j) sample(0:(k - 1), 1, prob = pr[j, ]))
 
 #########################  parallel ####################
 # num_sweeps = ceiling(200/log(n)) 
-num_sweeps = 20
-burnin = 5
-num_trees = 20
-max_depth = NULL
-mtry = NULL 
+# num_sweeps = 20
+# burnin = 5
+# num_trees = 20
+# max_depth = NULL
+# mtry = NULL 
 separate_tree = FALSE
-
-
 tm = proc.time()
-fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, 
-    num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin,
-    p_categorical = p_cat, tau_a = 3.5, tau_b = 3,
-    verbose = T, parallel = T,
-    separate_tree = separate_tree, 
-    update_tau = F, update_weight = T, a = 0.1, update_phi = F)
+# fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, 
+#     num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin,
+#     p_categorical = p_cat, tau_a = 3.5, tau_b = 3,
+#     verbose = T, parallel = T,
+#     separate_tree = separate_tree, 
+#     update_tau = F, update_weight = T, a = 0.1, update_phi = F)
+
+num_sweeps <- 30
+burnin <- 2
+num_trees <- 50
+max_depth <- 25
+mtry <- p
+num_class <- k
+fit <- XBART.multinomial(
+  y = matrix(y_train), num_class = num_class, X = X_train,
+  num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth, update_weight = TRUE,
+  num_cutpoints = 100, burnin = burnin, mtry = mtry, p_categorical = p_cat, 
+  tau_a = (num_trees * 2 / 2.5^2 + 0.5), tau_b = (num_trees * 2 / 2.5^2), 
+  verbose = T, parallel = T, separate_tree = FALSE, update_tau = FALSE, update_phi = FALSE, 
+  a = 1 / num_class, no_split_penalty = 0.5, alpha = 0.95, beta = 2, Nmin = 15 * num_class, 
+  weight = 2.5, MH_step = 0.05
+)
 tm = proc.time()-tm
 cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 
@@ -86,9 +100,13 @@ n_posterior = 100
 thinning = 5
 
 tm2 = proc.time()
+# (burnin+1):
 fit.bart.warmstart <- mlbart_ini(fit$treedraws[(burnin+1):num_sweeps], x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
-    type=type, power=1.25, base=0.95, ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=burnin, update_phi = F) #nskipp = burnin
-tm2 = proc.time()-tm2
+    type=type, power=2, base=0.95, ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=burnin, 
+    update_phi = F, update_weight = T, weight = fit$weight[1, num_sweeps],
+    c = (num_trees * 2 / 2.5^2 + 0.5), d = (num_trees * 2 / 2.5^2)
+    ) #nskipp = burnin
+tm2 = proc.time()-tm2 + tm
 cat(paste("warmstart runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 phat.bart.warmstart <- t(apply(fit.bart.warmstart$yhat.test, c(2, 3), mean))
 yhat.bart.warmstart <- apply(phat.bart.warmstart, 1, which.max) - 1
@@ -105,7 +123,7 @@ plot(1:n_posterior, acc_trace, type = "l")
 tm3 = proc.time()
 fit.bart <- mlbart(x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
                        type='shared', power=1.25, base=0.95, 
-                       ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=0, update_phi = F) #nskip = burnin
+                       ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=0, update_phi = F, update_weight = T) #nskip = burnin
 tm3 = proc.time()-tm3
 cat(paste("bart runtime: ", round(tm3["elapsed"],3)," seconds"),"\n")
 phat.bart <- t(apply(fit.bart$yhat.test, c(2, 3), mean))
@@ -149,7 +167,7 @@ logloss.xgb <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY =
 
 # # 
 par(mfrow = c(2, 2))
-ind <- 3
+ind <- 1
 ind_trace <- fit.bart.warmstart$yhat.test[,y_test[ind] + 1,ind]
 plot(1:n_posterior, ind_trace, type = "l", main = "warmstart")
 

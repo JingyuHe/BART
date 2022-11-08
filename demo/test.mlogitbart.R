@@ -91,7 +91,7 @@ keepevery = 10
 tm2 = proc.time()
 fit.bart.sep <- mlbart(x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
                    type='separate', power=2, base=0.95, 
-                   ntree = 20, ndpost = ndpost, keepevery=keepevery, nskip=nskip, update_phi = T)
+                   ntree = 20, ndpost = ndpost, keepevery=keepevery, nskip=nskip, update_phi = F, update_weight = T)
 tm2 = proc.time()-tm2
 cat(paste("bart runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 phat.bart.sep <- t(apply(fit.bart.sep$yhat.test, c(2, 3), mean))
@@ -101,7 +101,7 @@ yhat.bart.sep <- apply(phat.bart.sep, 1, which.max) - 1
 tm3 = proc.time()
 fit.bart.shrd <- mlbart(x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
                        type='shared', power=2, base=0.95, 
-                       ntree = 20, ndpost = ndpost, keepevery=keepevery, nskip=nskip, update_phi = T)
+                       ntree = 20, ndpost = ndpost, keepevery=keepevery, nskip=nskip, update_phi = F, update_weight = T)
 tm3 = proc.time()-tm3
 cat(paste("bart runtime: ", round(tm3["elapsed"],3)," seconds"),"\n")
 phat.bart.shrd <- t(apply(fit.bart.shrd$yhat.test, c(2, 3), mean))

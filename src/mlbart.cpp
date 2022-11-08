@@ -67,7 +67,11 @@ RcppExport SEXP mlogitbart(
    SEXP _ia0,
    SEXP _inprintevery,
    SEXP _Xinfo,
-   SEXP _update_phi
+   SEXP _update_phi,
+   SEXP _update_weight,
+   SEXP _iweight,
+   SEXP _ia,
+   SEXP _iMH_step
 )
 {
    //process args
@@ -95,12 +99,17 @@ RcppExport SEXP mlogitbart(
    double alpha = Rcpp::as<double>(_ibase);
    double a0 = Rcpp::as<double>(_ia0);
    bool update_phi = Rcpp::as<bool>(_update_phi);
+   bool update_weight = Rcpp::as<bool>(_update_weight);   
+   double weight = Rcpp::as<double>(_iweight);
+   double a = Rcpp::as<double>(_ia);
+   double MH_step = Rcpp::as<double>(_iMH_step);
    size_t nkeeptrain = nd/thin;  // = ndpost    //Rcpp::as<int>(_inkeeptrain);
    size_t nkeeptest = nd/thin;   // = ndpost    //Rcpp::as<int>(_inkeeptest);
    size_t nkeeptreedraws = nd/thin; //Rcpp::as<int>(_inkeeptreedraws);
    size_t printevery = Rcpp::as<int>(_inprintevery);
    Rcpp::NumericMatrix varprb(nkeeptreedraws,p);
    Rcpp::IntegerMatrix varcnt(nkeeptreedraws,p);
+   Rcpp::NumericVector wdraw(nkeeptreedraws);
    Rcpp::NumericMatrix Xinfo(_Xinfo);
    Rcpp::NumericVector sdraw(nd+burn);
    Rcpp::NumericMatrix trdraw(nkeeptrain, n*k);
@@ -234,8 +243,8 @@ void mlogitbart(
    for(size_t i=0; i<n; i++) z[i] = iy[i];
    // --------------------------------------------------
    //set up BART model
-   bm.setprior(m, a0, alpha, mybeta, update_phi);
-   bm.setdata(p,n,ix,z,numcut, separate);
+   bm.setprior(m, a0, alpha, mybeta, update_phi, update_weight, a, MH_step);
+   bm.setdata(p,n,ix,z,numcut, separate,weight);
    // bm.setdart(a,b,rho,aug,dart);
    // dart iterations
    std::vector<double> ivarprb (p,0.);
@@ -266,6 +275,12 @@ void mlogitbart(
       // if(i==(burn/2)&&dart) bm.startdart();
       //draw bart
       bm.draw(gen);
+      
+      if(update_weight)
+      {
+         // void drweight(mlogitpinfo& mpi, mlogitdinfo& mdi, double *allfit, size_t n, size_t k, rn& gen)
+         bm.drweight(gen, weight);
+      }
 
    //    //draw sigma
    //    if(type==1) {
@@ -300,22 +315,23 @@ void mlogitbart(
          }
          keeptreedraw = nkeeptreedraws && (((i-burn+1) % skiptreedraws) ==0);
          if(keeptreedraw) {
+            size_t kk=(i-burn)/skiptreedraws;
             for(size_t j=0;j<m*k;j++) {
 	            treess << bm.gettree(j);
 
                #ifndef NoRcpp
                ivarcnt=bm.getnv();
                ivarprb=bm.getpv();
-               size_t k=(i-burn)/skiptreedraws;
                for(size_t j=0;j<p;j++){
-                  varcnt(k,j)=ivarcnt[j];
-                  varprb(k,j)=ivarprb[j];
+                  varcnt(kk,j)=ivarcnt[j];
+                  varprb(kk,j)=ivarprb[j];
                }
                #else
                varcnt.push_back(bm.getnv());
                varprb.push_back(bm.getpv());
                #endif
 	         }
+            wdraw(kk) = weight;
          }
       }
    }
@@ -337,6 +353,7 @@ void mlogitbart(
    ret["yhat.test"]=tedraw;
    ret["varcount"]=varcnt;
    ret["varprob"]=varprb;
+   ret["wdraw"]=wdraw;
 
    Rcpp::List xiret(xi.size());
    for(size_t i=0;i<xi.size();i++) {

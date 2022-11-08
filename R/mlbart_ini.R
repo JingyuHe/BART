@@ -40,7 +40,13 @@ mlbart_ini=function(treedraws,
                hostname=FALSE,
                mc.cores = 1L, nice = 19L, seed = 99L,
                a0 = 3.5/sqrt(2),
-               update_phi = FALSE
+               c = NULL,
+               d = NULL,
+               update_phi = FALSE,
+               update_weight = TRUE,
+               weight = 2.5,
+               a = 1 / num_class,
+               MH_step = 0.05
                )
 {
     require(GIGrvg)
@@ -89,6 +95,13 @@ mlbart_ini=function(treedraws,
             stop('Binary y.train must be coded as 0 and 1')
         if(type=='wbart')
             stop("The outcome is binary so set type to 'pbart' or 'lbart'")
+    }
+
+    if (is.null(c)){
+        c = ntree / pow(a0, 2) + 0.5
+    }
+    if (is.null(d)){
+        d = ntree / pow(a0, 2)
     }
 
     ## check <- c('wbart', 'pbart', 'lbart')
@@ -227,10 +240,16 @@ mlbart_ini=function(treedraws,
                     # rho,
                     # augment,
                     a0,
+                    c,
+                    d,
                     printevery,
                     xinfo,
                     treedraws[sweeps],
-                    update_phi
+                    update_phi,
+                    update_weight,
+                    weight,
+                    a,
+                    MH_step
                     )
 
             # res$yhat.train dimnames

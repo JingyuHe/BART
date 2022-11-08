@@ -122,11 +122,11 @@ void mlgetsuff(tree& x, tree::tree_p nx, size_t v, size_t c, xinfo& xi, mlogitdi
       xx = mdi.x + i*mdi.p;
       if(nx==x.bn(xx,xi)) { //does the bottom node = xx's bottom node
          if(xx[v] < xi[v][c]) {
-            if (mdi.y[i] == mdi.ik) {nl++;} // does xx belong to category ik
-            syl += mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]); // mdi.f = allfit = f_(h)
+            if (mdi.y[i] == mdi.ik) {nl+= mdi.weight;} // does xx belong to category ik
+            syl += mdi.weight * mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]); // mdi.f = allfit = f_(h)
           } else {
-            if (mdi.y[i] == mdi.ik) {nr++;}
-            syr += mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]);
+            if (mdi.y[i] == mdi.ik) {nr+= mdi.weight;}
+            syr += mdi.weight * mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]);
           }
       }
    }
@@ -264,6 +264,13 @@ void drphi(double *phi, double *allfit, size_t n, size_t k, rn& gen)
         phi[i] = gen.gamma(1, sum_fit); 
     }
 }
+
+double w_likelihood(double weight, double logloss, double a, size_t n, size_t k)
+{
+   double output = n * (std::lgamma(weight + (k - 1) * a + 1) - std::lgamma(weight + 1) - weight * logloss);
+   return output;
+}
+
 // return the nomalization term for generazlied inverse gaussian (gig) distribution, see mlnomial BART, Jared Murray
 double gignorm(double eta, double chi, double psi) 
 { 
@@ -504,5 +511,18 @@ size_t dpropShrTr(tree& x, xinfo& xi, pinfo& pi,tree::npv& goodbots, double& PBx
 
       pr =  ((1.0-PGny)*PBy*Pboty)/(PGny*(1.0-PGlx)*(1.0-PGrx)*PDx*Pnogx);
       return ni;
+}
+
+double normal_density(double y, double mean, double var, bool take_log)
+{
+    // density of normal distribution
+    double output = 0.0;
+
+    output = -0.5 * log(2.0 * M_PI * var) - pow(y - mean, 2) / 2.0 / var;
+    if (!take_log)
+    {
+        output = exp(output);
+    }
+    return output;
 }
 //
