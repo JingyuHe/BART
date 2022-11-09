@@ -40,7 +40,7 @@ lamt[, 6] <- 2 * (X_test[, 1] + X_test[, 3] - X_test[, 5])
 
 #####################
 # vary s to make the problem harder s < 1 or easier s > 2
-s <- 1
+s <- 10
 pr <- exp(s * lam)
 pr <- t(scale(t(pr), center = FALSE, scale = rowSums(pr)))
 y_train <- sapply(1:n, function(j) sample(0:(k - 1), 1, prob = pr[j, ]))
@@ -96,7 +96,7 @@ if(separate_tree){
 
 # extreme case, only draw one posterior sample
 # warm start should be better than the root initialization
-n_posterior = 100
+n_posterior = 100 * (num_sweeps - burnin)
 thinning = 1
 
 tm2 = proc.time()
@@ -130,7 +130,7 @@ tm4 <- proc.time()
 # fit.xgb <- xgboost(data = X_train, label = y_train, num_class = k, verbose = 0, max_depth = 4, subsample = 0.80, nrounds = 500, early_stopping_rounds = 2, eta = 0.1, params = list(objective = "multi:softprob"))
 fit.xgb <- xgboost(data = as.matrix(X_train), label = matrix(y_train),
                    num_class=k, verbose = 0,
-                   nrounds=200,
+                   nrounds=500,
                    early_stopping_rounds = 50,
                    params=list(objective="multi:softprob"))
 tm4 <- proc.time() - tm4
