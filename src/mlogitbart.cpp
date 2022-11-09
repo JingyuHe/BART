@@ -67,7 +67,7 @@ void mlbart::predict(size_t p, size_t n, double *x, double *fp, bool normalize)
       for(size_t ik = 0; ik < k; ik++)
       {
          fit(t[j*k + ik], xi, p, n, x, fptemp);
-         for (size_t i = 0; i < n; i++) fp[i*k + ik] += log(fptemp[i]); // fp for i-th obs and j-th class is fp[i*k + j].
+         for (size_t i = 0; i < n; i++) fp[ik * n + i] += log(fptemp[i]); // fp for i-th obs and j-th class is fp[i*k + j].
       }
    }
 
@@ -80,15 +80,15 @@ void mlbart::predict(size_t p, size_t n, double *x, double *fp, bool normalize)
          max_log_prob = -INFINITY;
          for (size_t ik = 0; ik < k; ik++)
          {
-         if (fp[i*k + ik] > max_log_prob) max_log_prob = fp[i*k + ik];  
+         if (fp[ik * n + i] > max_log_prob) max_log_prob = fp[ik * n + i];  
          }
          denom = 0.0;
          for (size_t ik = 0; ik < k; ik++)
          {
-            fp[i*k + ik] = exp(fp[i*k + ik] - max_log_prob);
-            denom += fp[i*k + ik];
+            fp[ik * n + i] = exp(fp[ik * n + i] - max_log_prob);
+            denom += fp[ik * n + i];
          } 
-         for (size_t ik = 0; ik < k; ik ++) fp[i*k + ik] = fp[i*k + ik] / denom;
+         for (size_t ik = 0; ik < k; ik ++) fp[ik * n + i] = fp[ik * n + i] / denom;
       }
    }
    // else{

@@ -190,8 +190,8 @@ mlbart_ini=function(treedraws,
 
     obj <- list()
     obj$trees <- list()
-    obj$yhat.train <- array(NA, dim = c(ndpost, num_class, n))
-    if(np > 0) {obj$yhat.test <- array(NA, dim = c(ndpost, num_class, np))}
+    obj$yhat.train <- array(NA, dim = c(ndpost, n, num_class))
+    if(np > 0) {obj$yhat.test <- array(NA, dim = c(ndpost, np, num_class))}
     
 
     num_sweeps <- length(treedraws)
@@ -253,8 +253,8 @@ mlbart_ini=function(treedraws,
                     )
 
             # res$yhat.train dimnames
-            res$yhat.train = array(res$yhat.train, dim = c(this_ndpost, num_class, n))
-            if(np>0) {res$yhat.test = array(res$yhat.test, dim = c(this_ndpost, num_class, np))}
+            res$yhat.train = array(res$yhat.train, dim = c(this_ndpost, n, num_class))
+            if(np>0) {res$yhat.test = array(res$yhat.test, dim = c(this_ndpost, np, num_class))}
 
             obj$yhat.train[(count_ndpost + 1) : (count_ndpost + this_ndpost),,] <- res$yhat.train
             obj$yhat.test[(count_ndpost + 1) : (count_ndpost + this_ndpost),,] <- res$yhat.test

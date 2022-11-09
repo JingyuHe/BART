@@ -247,8 +247,8 @@ mlbart=function(
     ##res$LPML=sum(log(CPO))
 
     # res$yhat.train dimnames
-    res$yhat.train = array(res$yhat.train, dim = c(ndpost, num_class, np))
-    if(np>0) {res$yhat.test = array(res$yhat.test, dim = c(ndpost, num_class, np))}
+    res$yhat.train = array(res$yhat.train, dim = c(ndpost, n, num_class))
+    if(np>0) {res$yhat.test = array(res$yhat.test, dim = c(ndpost, np, num_class))}
 
     names(res$treedraws$cutpoints) = dimnames(x.train)[[1]]
     dimnames(res$varcount)[[2]] = as.list(dimnames(x.train)[[1]])

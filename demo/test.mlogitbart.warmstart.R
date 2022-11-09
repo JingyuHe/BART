@@ -108,7 +108,7 @@ fit.bart.warmstart <- mlbart_ini(fit$treedraws[(burnin + 1):num_sweeps], x.train
     ) #nskipp = burnin
 tm2 = proc.time()-tm2 + tm
 cat(paste("warmstart runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
-phat.bart.warmstart <- t(apply(fit.bart.warmstart$yhat.test, c(2, 3), mean))
+phat.bart.warmstart <- apply(fit.bart.warmstart$yhat.test, c(2, 3), mean)
 yhat.bart.warmstart <- apply(phat.bart.warmstart, 1, which.max) - 1
 
 
@@ -117,12 +117,12 @@ yhat.bart.warmstart <- apply(phat.bart.warmstart, 1, which.max) - 1
 # thinning = 10
 
 tm3 = proc.time()
-fit.bart <- mlbart(x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
-                       type='shared', power=1.25, base=0.95, 
-                       ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=0, update_phi = F, update_weight = T) #nskip = burnin
+fit.bart <- mlbart(x.train = X_train, y.train = y_train, num_class=k, x.test=X_test,
+                       type='shared', power=2, base=0.95,
+                       ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=burnin, update_phi = F, update_weight = T) #nskip = burnin
 tm3 = proc.time()-tm3
 cat(paste("bart runtime: ", round(tm3["elapsed"],3)," seconds"),"\n")
-phat.bart <- t(apply(fit.bart$yhat.test, c(2, 3), mean))
+phat.bart <- apply(fit.bart$yhat.test, c(2, 3), mean)
 yhat.bart <- apply(phat.bart, 1, which.max) - 1
 
 
@@ -144,15 +144,13 @@ logloss <- sum(mapply(function(x,y) -log(x[y]), spr, y_test+1, SIMPLIFY =TRUE)) 
 
 spr.bart <- split(phat.bart, row(phat.bart))
 logloss.bart <- sum(mapply(function(x,y) -log(x[y]), spr.bart, y_test+1, SIMPLIFY =TRUE)) / nt
-
+ 
 spr.bart.warmstart <- split(phat.bart.warmstart, row(phat.bart.warmstart))
 logloss.bart.warmstart <- sum(mapply(function(x,y) -log(x[y]), spr.bart.warmstart, y_test+1, SIMPLIFY =TRUE))  / nt
 
 spr <- split(phat.xgb, row(phat.xgb))
 logloss.xgb <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY = TRUE)) / nt
 
-
-# # 
 par(mfrow = c(2, 2))
 ind <- 1
 ind_trace <- fit.bart.warmstart$yhat.test[,y_test[ind] + 1,ind]
@@ -176,5 +174,3 @@ rownames(results) = c("logloss", "runtime", "accuracy")
 colnames(results) = c("XBART", "BART", "Warmstart", "Xgb")
 
 print(results)
-
-

@@ -226,7 +226,7 @@ void mlogitbart_ini(
    treess.precision(10);
    treess << nkeeptreedraws << " " << m*k << " " << p << endl;
 
-   printf("*****Calling mlbart: type=%d\n", type);
+   // printf("*****Calling mlbart: type=%d\n", type);
 
    size_t skiptr=thin, skipte=thin, skiptreedraws=thin;
 /*
@@ -261,7 +261,7 @@ void mlogitbart_ini(
 	// << dart << ',' << theta << ',' << omega << ',' << a << ',' 
 	// << b << ',' << rho << ',' << aug << endl;
    //printf("*****nkeeptrain,nkeeptest: %zu, %zu\n",nkeeptrain,nkeeptest);
-   printf("*****printevery: %zu\n",printevery);
+   // printf("*****printevery: %zu\n",printevery);
 
    // --------------------------------------------------
    // create temporaries
