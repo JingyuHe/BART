@@ -112,7 +112,7 @@ void load_classification_tree(std::istream& is, tree &t, size_t itree, size_t ic
 
 //--------------------------------------------------
 //compute r = \sum y_ij and s = \sum phi_i f_(t)(x) for left and right give bot and v,c
-void mlgetsuff(tree& x, tree::tree_p nx, size_t v, size_t c, xinfo& xi, mlogitdinfo& mdi, size_t& nl, double& syl, size_t& nr, double& syr)
+void mlgetsuff(tree& x, tree::tree_p nx, size_t v, size_t c, xinfo& xi, mlogitdinfo& mdi, double& nl, double& syl, double& nr, double& syr)
 {
    double *xx;//current x
    nl=0; syl=0.0;
@@ -135,7 +135,7 @@ void mlgetsuff(tree& x, tree::tree_p nx, size_t v, size_t c, xinfo& xi, mlogitdi
 
 //--------------------------------------------------
 //compute n and \sum y_i for left and right bots
-void mlgetsuff(tree& x, tree::tree_p l, tree::tree_p r, xinfo& xi, mlogitdinfo& mdi, size_t& nl, double& syl, size_t& nr, double& syr)
+void mlgetsuff(tree& x, tree::tree_p l, tree::tree_p r, xinfo& xi, mlogitdinfo& mdi, double& nl, double& syl, double& nr, double& syr)
 {
    double *xx;//current x
    nl=0; syl=0.0;
@@ -145,19 +145,19 @@ void mlgetsuff(tree& x, tree::tree_p l, tree::tree_p r, xinfo& xi, mlogitdinfo& 
       xx = mdi.x + i*mdi.p;
       tree::tree_cp bn = x.bn(xx,xi);
       if(bn==l) {
-        if (mdi.y[i] == mdi.ik) {nl++;}
-        syl += mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]);
+        if (mdi.y[i] == mdi.ik) {nl+= mdi.weight;}
+        syl += mdi.weight * mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]);
       }
       if(bn==r) {
-        if (mdi.y[i] == mdi.ik) {nr++;}
-        syr += mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]);
+        if (mdi.y[i] == mdi.ik) {nr+= mdi.weight;}
+        syr += mdi.weight * mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]);
       }
    }
 }
 
 //--------------------------------------------------
 //get sufficients stats for all bottom nodes, this way just loop through all the data once.
-void mlallsuff(tree& x, xinfo& xi, mlogitdinfo& mdi, tree::npv& bnv, std::vector<size_t>& nv, std::vector<double>& syv)
+void mlallsuff(tree& x, xinfo& xi, mlogitdinfo& mdi, tree::npv& bnv, std::vector<double>& nv, std::vector<double>& syv)
 {
    tree::tree_cp tbn; //the pointer to the bottom node for the current observations
    size_t ni;         //the  index into vector of the current bottom node
@@ -170,16 +170,15 @@ void mlallsuff(tree& x, xinfo& xi, mlogitdinfo& mdi, tree::npv& bnv, std::vector
    bvsz nb = bnv.size();
    nv.resize(nb);
    syv.resize(nb);
-
+   // cout << "bnv size " << nb << endl;
    std::map<tree::tree_cp,size_t> bnmap;
    for(bvsz i=0;i!=bnv.size();i++) {bnmap[bnv[i]]=i;nv[i]=0;syv[i]=0.0;}
-
    for(size_t i=0;i<mdi.n;i++) {
       xx = mdi.x + i*mdi.p;
       tbn = x.bn(xx,xi);
       ni = bnmap[tbn];
-      if (mdi.y[i] == mdi.ik) {++(nv[ni]);}
-      syv[ni] += mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]);
+      if (mdi.y[i] == mdi.ik) {nv[ni]+=mdi.weight;}
+      syv[ni] += mdi.weight * mdi.phi[i] * exp(mdi.f[mdi.ik * mdi.n + i]);
    }
    // cout << "phi = " << mdi.phi[0] << "; f = " << mdi.f[mdi.ik*mdi.n + 0] << endl;
 }
@@ -188,7 +187,7 @@ void mlallsuff(tree& x, xinfo& xi, mlogitdinfo& mdi, tree::npv& bnv, std::vector
 void drlamb(tree& t, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, rn& gen)
 {
    tree::npv bnv;
-   std::vector<size_t> nv;
+   std::vector<double> nv;
    std::vector<double> syv;
    mlallsuff(t,xi,mdi,bnv,nv,syv);
 
@@ -221,7 +220,7 @@ double mllh(size_t n, double sy, double c, double d, double logz3)
 }
 //--------------------------------------------------
 //draw one lambda from post 
-double drawnodelambda(size_t n, double sy, double c, double d, rn& gen)
+double drawnodelambda(double n, double sy, double c, double d, rn& gen)
 {
    /////////////////////////// generalize inversed Gaussian distribution
    double logz1 = loggignorm(-c+n, 2*d, 2*sy);
@@ -250,6 +249,7 @@ double drawnodelambda(size_t n, double sy, double c, double d, rn& gen)
       Rcpp::NumericVector ret_r = f(1, eta, chi, psi);
       ret = ret_r(0);
     }
+   //  cout << "n = " << n << " sy = " << sy  << " ret = " << ret << endl;
     return ret;
 }
 

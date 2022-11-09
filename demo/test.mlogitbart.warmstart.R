@@ -40,7 +40,7 @@ lamt[, 6] <- 2 * (X_test[, 1] + X_test[, 3] - X_test[, 5])
 
 #####################
 # vary s to make the problem harder s < 1 or easier s > 2
-s <- 10
+s <- 1
 pr <- exp(s * lam)
 pr <- t(scale(t(pr), center = FALSE, scale = rowSums(pr)))
 y_train <- sapply(1:n, function(j) sample(0:(k - 1), 1, prob = pr[j, ]))
@@ -65,9 +65,9 @@ tm = proc.time()
 #     separate_tree = separate_tree, 
 #     update_tau = F, update_weight = T, a = 0.1, update_phi = F)
 
-num_sweeps <- 30
-burnin <- 2
-num_trees <- 50
+num_sweeps <- 20
+burnin <- 5
+num_trees <- 20
 max_depth <- 25
 mtry <- p
 num_class <- k
@@ -97,11 +97,11 @@ if(separate_tree){
 # extreme case, only draw one posterior sample
 # warm start should be better than the root initialization
 n_posterior = 100
-thinning = 5
+thinning = 1
 
 tm2 = proc.time()
 # (burnin+1):
-fit.bart.warmstart <- mlbart_ini(fit$treedraws[(burnin+1):num_sweeps], x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
+fit.bart.warmstart <- mlbart_ini(fit$treedraws[(burnin + 1):num_sweeps], x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
     type=type, power=2, base=0.95, ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=burnin, 
     update_phi = F, update_weight = T, weight = fit$weight[1, num_sweeps],
     c = (num_trees * 2 / 2.5^2 + 0.5), d = (num_trees * 2 / 2.5^2)
@@ -111,11 +111,7 @@ cat(paste("warmstart runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 phat.bart.warmstart <- t(apply(fit.bart.warmstart$yhat.test, c(2, 3), mean))
 yhat.bart.warmstart <- apply(phat.bart.warmstart, 1, which.max) - 1
 
-# Trace plot acc / individual prediction
-yhat_trace <- apply(fit.bart.warmstart$yhat.test, 1, function(phat) apply(phat, 2, which.max) - 1)
-acc_trace <- apply(yhat_trace, 2, function(yhat) mean(yhat == y_test))
-plot(1:n_posterior, acc_trace, type = "l")
-# 
+
 
 # n_posterior = 200
 # thinning = 10
@@ -129,15 +125,6 @@ cat(paste("bart runtime: ", round(tm3["elapsed"],3)," seconds"),"\n")
 phat.bart <- t(apply(fit.bart$yhat.test, c(2, 3), mean))
 yhat.bart <- apply(phat.bart, 1, which.max) - 1
 
-# Separate version
-# tm5 = proc.time()
-# fit.bart.sep <- mlbart(x.train = X_train, y.train = y_train, num_class=k, x.test=X_test, 
-#                    type='separate', power=1.25, base=0.95, 
-#                    ntree = num_trees, ndpost = n_posterior, keepevery=thinning, nskip=0) #nskip = burnin
-# tm5 = proc.time()-tm5
-# cat(paste("bart runtime: ", round(tm5["elapsed"],3)," seconds"),"\n")
-# phat.bart.sep <- t(apply(fit.bart.sep$yhat.test, c(2, 3), mean))
-# yhat.bart.sep <- apply(phat.bart.sep, 1, which.max) - 1
 
 tm4 <- proc.time()
 # fit.xgb <- xgboost(data = X_train, label = y_train, num_class = k, verbose = 0, max_depth = 4, subsample = 0.80, nrounds = 500, early_stopping_rounds = 2, eta = 0.1, params = list(objective = "multi:softprob"))

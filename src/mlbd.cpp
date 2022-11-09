@@ -35,7 +35,7 @@ bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, double *phi,
 
       //--------------------------------------------------
       //compute sufficient statistics
-      size_t nr,nl; //counts in proposed bots
+      double nr,nl; //counts in proposed bots
       double syl, syr; //sum of y in proposed bots
       mlgetsuff(x,nx,v,c,xi,mdi,nl,syl,nr,syr);
       // cout << "suff stats " << "nl=" << nl << ", syl="<<syl << ", nr=" << nr << ", syr="<<syr<<endl;
@@ -76,7 +76,7 @@ bool mlbd(tree& x, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, double *phi,
 
       //--------------------------------------------------
       //compute sufficient statistics
-      size_t nr,nl; //counts at bots of nx
+      double nr,nl; //counts at bots of nx
       double syl, syr; //sum at bots of nx
       mlgetsuff(x, nx->getl(), nx->getr(), xi, mdi, nl, syl, nr, syr);
       // cout << "suff stats " << "nl=" << nl << ", syl="<<syl << ", nr=" << nr << ", syr="<<syr<<endl;
@@ -124,7 +124,7 @@ bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& m
       double lhl, lhr, lht;
       // size_t nr,nl; //counts in proposed bots
       // double syl, syr; //sum of y in proposed bots
-      std::vector<size_t> nr(mdi.k), nl(mdi.k);
+      std::vector<double> nr(mdi.k), nl(mdi.k);
       std::vector<double> syl(mdi.k), syr(mdi.k);
       
       for (size_t ik = 0; ik < mdi.k; ik++){
@@ -171,7 +171,7 @@ bool mlbdShrTr(std::vector<tree>& t, size_t tree_iter, xinfo& xi, mlogitdinfo& m
       //compute sufficient statistics
       double lalpha = log(pr);
       double lhl, lhr, lht;
-      std::vector<size_t> nr(mdi.k), nl(mdi.k);
+      std::vector<double> nr(mdi.k), nl(mdi.k);
       std::vector<double> syl(mdi.k), syr(mdi.k);
 
       for (size_t ik = 0; ik < mdi.k; ik++)

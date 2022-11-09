@@ -132,12 +132,11 @@ void mlbart::draw(rn& gen)
             fit(t[j*k + ik],xi,p,n,x,&ftemp[ik * n]);
             for(size_t i=0;i<n;i++) allfit[ik * n + i] += - log(ftemp[ik * n + i]);
          }
-// cout << "ok7" << endl;
          // bd function, shared tree version
          mlbdShrTr(t,j,xi,mdi,mpi,phi,nv,pv,aug,gen);
-// cout << "ok8" << endl;
          // update allfit with new lambdas
          for (size_t ik = 0; ik < k; ik ++) {
+            // cout << "ik = " << ik << endl;
             mdi.ik = ik;
             drlamb(t[j*k + ik],xi,mdi,mpi,gen);
             fit(t[j*k + ik],xi,p,n,x,&ftemp[ik * n]); // update ftemp, ftemp[i, k] is *(k*n + i)

@@ -241,18 +241,18 @@ void mlogitbart_ini(
 
    //--------------------------------------------------
    //print args
-   printf("*****Data:\n");
-   printf("data:n,p,np,k: %zu, %zu, %zu, %zu\n",n,p,np,k);
-   printf("y1,yn: %lf, %lf\n",iy[0],iy[n-1]);
-   printf("x1,x[n*p]: %lf, %lf\n",ix[0],ix[n*p-1]);
-   if(np) printf("xp1,xp[np*p]: %lf, %lf\n",ixp[0],ixp[np*p-1]);
-   printf("*****Number of Trees: %zu\n",m);
-   printf("*****Number of Cut Points: %d ... %d\n", numcut[0], numcut[p-1]);
-   printf("*****burn,nd,thin: %zu,%zu,%zu\n",burn,nd,thin);
-// printf("Prior:\nbeta,alpha,tau,nu,lambda,offset: %lf,%lf,%lf,%lf,%lf,%lf\n",
-//                    mybeta,alpha,tau,nu,lambda,Offset);
-   cout << "*****Prior:beta,alpha,a0: " 
-	<< mybeta << ',' << alpha << ',' << a0 << endl;
+//    printf("*****Data:\n");
+//    printf("data:n,p,np,k: %zu, %zu, %zu, %zu\n",n,p,np,k);
+//    printf("y1,yn: %lf, %lf\n",iy[0],iy[n-1]);
+//    printf("x1,x[n*p]: %lf, %lf\n",ix[0],ix[n*p-1]);
+//    if(np) printf("xp1,xp[np*p]: %lf, %lf\n",ixp[0],ixp[np*p-1]);
+//    printf("*****Number of Trees: %zu\n",m);
+//    printf("*****Number of Cut Points: %d ... %d\n", numcut[0], numcut[p-1]);
+//    printf("*****burn,nd,thin: %zu,%zu,%zu\n",burn,nd,thin);
+// // printf("Prior:\nbeta,alpha,tau,nu,lambda,offset: %lf,%lf,%lf,%lf,%lf,%lf\n",
+// //                    mybeta,alpha,tau,nu,lambda,Offset);
+//    cout << "*****Prior:beta,alpha,a0: " 
+// 	<< mybeta << ',' << alpha << ',' << a0 << endl;
 // if(type==1) {
 //    // printf("*****sigma: %lf\n",sigma);
 //    printf("*****w (weights): %lf ... %lf\n",iw[0],iw[n-1]);

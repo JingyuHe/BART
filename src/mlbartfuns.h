@@ -25,13 +25,13 @@
 #include "info.h"
 #include "bartfuns.h"
 
-void mlgetsuff(tree& x, tree::tree_p nx, size_t v, size_t c, xinfo& xi, mlogitdinfo& di, size_t& nl, double& syl, size_t& nr, double& syr);
+void mlgetsuff(tree& x, tree::tree_p nx, size_t v, size_t c, xinfo& xi, mlogitdinfo& di, double& nl, double& syl, double& nr, double& syr);
 
-void mlgetsuff(tree& x, tree::tree_p l, tree::tree_p r, xinfo& xi, mlogitdinfo& mdi, size_t& nl, double& syl, size_t& nr, double& syr);
+void mlgetsuff(tree& x, tree::tree_p l, tree::tree_p r, xinfo& xi, mlogitdinfo& mdi, double& nl, double& syl, double& nr, double& syr);
 
-void mlallsuff(tree& x, xinfo& xi, mlogitdinfo& di, tree::npv& bnv, std::vector<size_t>& nv, std::vector<double>& syv);
+void mlallsuff(tree& x, xinfo& xi, mlogitdinfo& di, tree::npv& bnv, std::vector<double>& nv, std::vector<double>& syv);
 
-double drawnodelambda(size_t n, double sy, double c, double d, rn& gen);
+double drawnodelambda(double n, double sy, double c, double d, rn& gen);
 
 void drlamb(tree& t, xinfo& xi, mlogitdinfo& mdi, mlogitpinfo& mpi, rn& gen);
 
