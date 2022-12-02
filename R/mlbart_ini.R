@@ -98,10 +98,10 @@ mlbart_ini=function(treedraws,
     }
 
     if (is.null(c)){
-        c = ntree / pow(a0, 2) + 0.5
+        c = ntree / a0^2 + 0.5
     }
     if (is.null(d)){
-        d = ntree / pow(a0, 2)
+        d = ntree / a0^2
     }
 
     ## check <- c('wbart', 'pbart', 'lbart')
